@@ -372,3 +372,12 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
 /* Khi bottom sheet đang mở, snackbar hiện ở trên để không che nút Lưu */
 body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .row-note span { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Đồng bộ ---------- */
+.icon-btn.syncing svg { animation: spin 1s linear infinite; color: var(--primary); }
+.icon-btn.sync-error { color: var(--danger); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.sheet-text { margin: 0 4px 12px; font-size: 14px; color: var(--text-2); }
+.steps { margin: 0 0 16px; padding-left: 24px; font-size: 14px; line-height: 1.6; }
+.steps a { color: var(--primary); font-weight: 500; }
+.hint.error { color: var(--danger); margin-top: 0; }

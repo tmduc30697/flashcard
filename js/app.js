@@ -1,7 +1,8 @@
 // Khởi động app: điều hướng, service worker, banner cài đặt / cập nhật.
 import * as store from './store.js';
-import { initList, initRipple, setExtraMenuItems, snackbar, closeSheet, closeMenu, h, icon } from './ui-list.js';
+import { initList, initRipple, addMenuItems, snackbar, closeSheet, closeMenu, h, icon } from './ui-list.js';
 import { initStudy, startStudy, stopStudy } from './ui-study.js';
+import { initSync } from './sync.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -82,7 +83,7 @@ function initInstall() {
     installPrompt = null;
     snackbar('Đã cài app');
   });
-  setExtraMenuItems(() => installPrompt ? ['-', {
+  addMenuItems(() => installPrompt ? ['-', {
     icon: 'install', text: 'Cài app',
     onClick: async () => {
       const p = installPrompt;
@@ -117,4 +118,5 @@ if (location.hash === '#study') history.replaceState(null, '', location.pathname
 window.addEventListener('hashchange', route);
 route();
 initInstall();
+initSync();
 initServiceWorker();

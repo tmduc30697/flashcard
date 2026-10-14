@@ -5,7 +5,7 @@ App học flashcard dạng PWA, giao diện kiểu danh sách việc cần làm 
 **Link app:** https://tmduc30697.github.io/flashcard/
 
 - Vanilla HTML/CSS/JS, không framework, không bước build.
-- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy — nhớ **xuất JSON để sao lưu**.
+- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy; có thể bật **đồng bộ qua GitHub Gist** để điện thoại và máy tính dùng chung.
 
 ## Chạy thử trên máy
 
@@ -80,6 +80,28 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 - **Nút +**: thêm thẻ, hoặc chuyển sang **Thêm nhiều** để dán cả danh sách.
 - **Học**: học các thẻ chưa thuộc theo thứ tự ngẫu nhiên; chạm để lật; nút ⇄ để đảo chiều (hiện mặt sau trước). Trên máy tính có thể dùng phím ← (chưa thuộc) và → (đã thuộc).
 
+## Đồng bộ giữa các máy (GitHub Gist)
+
+Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`) trong tài khoản GitHub của bạn. Không cần server hay đăng ký dịch vụ nào khác.
+
+**Bật lần đầu:**
+1. Trong app: menu ⋮ → **Đồng bộ GitHub Gist** → bấm *Mở trang tạo token trên GitHub*
+   (hoặc mở thẳng https://github.com/settings/tokens/new?scopes=gist&description=Flashcard%20PWA).
+2. Expiration chọn **No expiration**, chỉ tick quyền **gist** → **Generate token**.
+3. Copy token (`ghp_...`), dán vào app → **Kết nối**. Lưu token vào ghi chú để dùng cho máy khác.
+
+**Trên máy khác:** cài app, menu ⋮ → Đồng bộ GitHub Gist → dán cùng token. App tự tìm gist cũ và tải dữ liệu về (bộ mẫu trên máy mới sẽ được bỏ đi).
+
+**Cách hoạt động:**
+- Mở app / quay lại app → tải dữ liệu mới nhất từ gist.
+- Sửa thẻ, tick đã thuộc… → khoảng 2–3 giây sau tự đẩy lên.
+- Offline vẫn dùng bình thường; có mạng lại thì tự đồng bộ.
+- Gộp theo **từng thẻ**: sửa trên 2 máy khác nhau thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
+- Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái; bấm vào để đồng bộ ngay. Đỏ = lỗi (thường do token hết hạn → kết nối lại).
+- Xem/sửa dữ liệu và lịch sử các phiên bản: menu ⋮ → **Mở Gist trên GitHub**.
+
+> Token chỉ có quyền gist và được lưu trong trình duyệt của máy đó. Không dán token trên máy của người khác. Nếu lộ token: xóa nó tại https://github.com/settings/tokens rồi tạo token mới.
+
 ## Định dạng "Thêm nhiều"
 
 Mỗi dòng một thẻ, mặt trước và mặt sau ngăn cách bằng ` - `, ` : ` hoặc phím **Tab** (dán thẳng từ Excel/Google Sheets được):
@@ -135,6 +157,7 @@ js/app.js           Khởi động, điều hướng, đăng ký SW, banner cài
 js/store.js         localStorage, xuất/nhập JSON, dữ liệu mẫu
 js/ui-list.js       Tab bộ thẻ, danh sách thẻ, bottom sheet, snackbar
 js/ui-study.js      Chế độ học
+js/sync.js          Đồng bộ với GitHub Gist
 icons/              Icon app (SVG gốc + PNG)
 scripts/            gen-icons.py, bump-version.sh
 ```
