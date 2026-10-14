@@ -1,6 +1,5 @@
 // Giao diện danh sách: tab bộ thẻ, danh sách thẻ, bottom sheet, menu, hộp thoại, snackbar.
 import * as store from './store.js';
-import { splitIPA } from './ipa.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -277,12 +276,11 @@ function renderList() {
   main.replaceChildren(...parts);
 }
 
-// Mặt sau: câu ở trên, IPA ngay dưới (cùng font, cỡ chữ với mặt trước)
-function backText(text) {
-  const [main, ipa] = splitIPA(text);
+// Câu tiếng Anh, IPA ngay dưới (cùng font, cỡ chữ với câu tiếng Việt)
+function backText(card) {
   return h('div', { class: 'detail-back' },
-    h('div', {}, main),
-    ipa && h('div', { class: 'detail-ipa' }, ipa.replace(/^[/[]|[/\]]$/g, '')));
+    h('div', {}, card.back),
+    card.ipa && h('div', { class: 'detail-ipa' }, card.ipa));
 }
 
 function cardRow(deck, card) {
@@ -295,7 +293,7 @@ function cardRow(deck, card) {
   h('div', { class: 'row-text' },
     h('div', { class: 'row-front' }, card.front),
     open && h('div', { class: 'detail', onclick: (e) => e.stopPropagation() },
-      card.back && backText(card.back),
+      card.back && backText(card),
       card.note && h('div', { class: 'detail-note' }, card.note),
       h('div', { class: 'detail-actions' },
         h('button', { type: 'button', class: 'chip ripple', onclick: act(() => markQueued(deck, card)) }, 'Chưa thuộc'),
@@ -406,29 +404,32 @@ export function openAddSheet(startMode = 'single') {
   let mode = startMode;
 
   const front = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', enterkeyhint: 'next' });
-  const back = h('input', { type: 'text', autocomplete: 'off', enterkeyhint: 'next' });
-  const note = h('textarea', { rows: '2', placeholder: 'Ví dụ, ghi chú… (tuỳ chọn)' });
+  const back = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', enterkeyhint: 'next' });
+  const ipa = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'next', placeholder: 'tuỳ chọn' });
+  const note = h('textarea', { rows: '2', placeholder: 'tuỳ chọn' });
   const save = h('button', { type: 'submit', class: 'btn btn-filled ripple', disabled: true }, 'Lưu');
   const updateSave = () => { save.disabled = !(front.value.trim() && back.value.trim()); };
   front.addEventListener('input', updateSave);
   back.addEventListener('input', updateSave);
   front.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); back.focus(); } });
-  back.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !save.disabled) { e.preventDefault(); single.requestSubmit(); } });
+  back.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); ipa.focus(); } });
+  ipa.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !save.disabled) { e.preventDefault(); single.requestSubmit(); } });
 
   const single = h('form', {
     onsubmit: (e) => {
       e.preventDefault();
       if (save.disabled) return;
-      store.addCards(deck.id, [{ front: front.value, back: back.value, note: note.value }]);
-      front.value = back.value = note.value = '';
+      store.addCards(deck.id, [{ front: front.value, back: back.value, ipa: ipa.value, note: note.value }]);
+      front.value = back.value = ipa.value = note.value = '';
       updateSave();
       front.focus();
       snackbar(`Đã thêm vào “${deck.name}”`, { duration: 1800 });
     },
   },
-  field('Mặt trước', front),
-  field('Mặt sau', back),
-  field('Ví dụ / ghi chú', note),
+  field('Câu tiếng Việt', front),
+  field('Câu tiếng Anh', back),
+  field('IPA', ipa),
+  field('Ghi chú', note),
   h('div', { class: 'actions' },
     h('button', { type: 'button', class: 'btn btn-text ripple', onclick: closeSheet }, 'Xong'),
     h('span', { class: 'spacer' }), save),
@@ -436,7 +437,7 @@ export function openAddSheet(startMode = 'single') {
 
   const bulkText = h('textarea', {
     class: 'bulk', autocapitalize: 'off', spellcheck: 'false',
-    placeholder: 'deforestation - nạn phá rừng\nbiodiversity : đa dạng sinh học\nmitigate\tgiảm nhẹ',
+    placeholder: 'Đi thôi. - Let\'s go.\nThật à? : Really?',
   });
   const preview = h('div', { class: 'preview' });
   const addBulk = h('button', { type: 'submit', class: 'btn btn-filled ripple', disabled: true }, 'Thêm');
@@ -463,7 +464,7 @@ export function openAddSheet(startMode = 'single') {
     },
   },
   field('Mỗi dòng một thẻ', bulkText),
-  h('p', { class: 'hint' }, 'Ngăn cách mặt trước và mặt sau bằng “ - ”, “ : ” hoặc phím Tab.'),
+  h('p', { class: 'hint' }, 'Mỗi dòng: câu tiếng Việt - câu tiếng Anh (ngăn cách bằng “ - ” hoặc “ : ”). Dán từ bảng tính: Việt ⇥ Anh ⇥ IPA ⇥ ghi chú.'),
   preview,
   h('div', { class: 'actions' },
     h('button', { type: 'button', class: 'btn btn-text ripple', onclick: closeSheet }, 'Hủy'),
@@ -492,8 +493,9 @@ export function openAddSheet(startMode = 'single') {
 
 function openEditSheet(deck, card) {
   const front = h('input', { type: 'text', value: card.front, autocomplete: 'off', autocapitalize: 'off' });
-  const back = h('input', { type: 'text', value: card.back, autocomplete: 'off' });
-  const note = h('textarea', { rows: '3', placeholder: 'Ví dụ, ghi chú… (tuỳ chọn)' });
+  const back = h('input', { type: 'text', value: card.back, autocomplete: 'off', autocapitalize: 'off' });
+  const ipa = h('input', { type: 'text', value: card.ipa || '', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: 'tuỳ chọn' });
+  const note = h('textarea', { rows: '3', placeholder: 'tuỳ chọn' });
   note.value = card.note || '';
   const save = h('button', { type: 'submit', class: 'btn btn-filled ripple' }, 'Lưu');
   const check = () => { save.disabled = !(front.value.trim() && back.value.trim()); };
@@ -504,14 +506,15 @@ function openEditSheet(deck, card) {
     onsubmit: (e) => {
       e.preventDefault();
       if (save.disabled) return;
-      store.updateCard(deck.id, card.id, { front: front.value.trim(), back: back.value.trim(), note: note.value.trim() });
+      store.updateCard(deck.id, card.id, { front: front.value.trim(), back: back.value.trim(), ipa: ipa.value.trim(), note: note.value.trim() });
       closeSheet();
     },
   },
   h('div', { class: 'sheet-head' }, h('h2', {}, 'Sửa thẻ')),
-  field('Mặt trước', front),
-  field('Mặt sau', back),
-  field('Ví dụ / ghi chú', note),
+  field('Câu tiếng Việt', front),
+  field('Câu tiếng Anh', back),
+  field('IPA', ipa),
+  field('Ghi chú', note),
   h('div', { class: 'actions' },
     h('button', {
       type: 'button', class: 'btn btn-danger ripple', html: icon('delete'),

@@ -108,37 +108,43 @@ Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`
 
 ## Định dạng "Thêm nhiều"
 
-Mỗi dòng một thẻ, mặt trước và mặt sau ngăn cách bằng ` - `, ` : ` hoặc phím **Tab** (dán thẳng từ Excel/Google Sheets được):
+Mỗi dòng một thẻ: câu tiếng Việt và câu tiếng Anh ngăn cách bằng ` - ` hoặc ` : `. Dán thẳng từ Excel/Google Sheets được, các cột theo thứ tự **Việt ⇥ Anh ⇥ IPA ⇥ ghi chú** (IPA, ghi chú tuỳ chọn):
 
 ```
-deforestation - nạn phá rừng
-biodiversity : đa dạng sinh học
-mitigate	giảm nhẹ
+Đi thôi. - Let's go.
+Thật à? : Really?
+Để tôi xem nào.	Let me see.	lɛt mi si	ghi chú
 ```
 
 Dòng trống hoặc không có dấu ngăn cách sẽ bị bỏ qua; app hiển thị số thẻ hợp lệ trước khi thêm.
 
 ## Định dạng file JSON để nhập
 
-Menu ⋮ → **Nhập từ file JSON**. Định dạng tối thiểu:
+Menu ⋮ → **Nhập từ file JSON**:
 
 ```json
 {
   "decks": [
     {
-      "name": "IELTS – Health",
+      "name": "Friends S01E01",
       "cards": [
-        { "front": "obesity /əʊˈbiːsəti/", "back": "béo phì", "note": "Obesity rates have risen sharply." }
+        {
+          "vi": "Không có gì để kể cả.",
+          "en": "There's nothing to tell.",
+          "ipa": "ðɛrz ˈnʌθɪŋ tə tɛl",
+          "note": "nothing to tell: chẳng có gì để kể"
+        }
       ]
     }
   ]
 }
 ```
 
-- Mỗi thẻ cần `front` và `back`; `note` tuỳ chọn. App tự cấp id, thời gian; mọi thẻ nhập vào đều hiện trong danh sách.
-- Chấp nhận: object có `decks`, một mảng các bộ, hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
+- `vi` (câu tiếng Việt — hiện trong danh sách) và `en` (câu tiếng Anh — hiện khi mở rộng) là **bắt buộc**; thẻ thiếu một trong hai bị bỏ qua.
+- `ipa` và `note` tuỳ chọn. IPA có thể có hoặc không có dấu `/.../`.
+- App tự cấp id, thời gian; một file có thể chứa nhiều bộ. Chấp nhận cả mảng các bộ hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
 - Bộ nhập vào luôn được **thêm mới**, không ghi đè bộ đang có (trùng tên sẽ thành "Tên (2)").
-- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tách ra: khi mở rộng một dòng, phiên âm hiện ở dòng riêng ngay dưới câu, màu nhạt hơn.
+- File kiểu cũ (`front` / `back`, IPA viết chung sau câu tiếng Anh) vẫn nhập được; IPA được tự tách ra.
 
 ## Cấu trúc thư mục
 

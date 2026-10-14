@@ -1,5 +1,7 @@
 // Lưu trữ dữ liệu: localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu khi đồng bộ.
 
+import { splitIPA } from './ipa.js';
+
 const KEY = 'flashcard:data';
 const FORMAT = 'flashcard-pwa';
 const TOMBSTONE_TTL = 90 * 24 * 3600 * 1000; // nhớ thẻ/bộ đã xóa 90 ngày để máy khác cũng xóa theo
@@ -28,16 +30,22 @@ export const prefs = {
   remove: (k) => safeRemove('flashcard:' + k),
 };
 
+// Thẻ: front = câu tiếng Việt, back = câu tiếng Anh, ipa = phiên âm, note = ghi chú.
+// File nhập dùng tên trường vi / en / ipa / note (vẫn nhận front / back kiểu cũ).
 function normCard(c) {
   if (!c || typeof c !== 'object') return null;
-  const front = String(c.front ?? '').trim();
-  const back = String(c.back ?? '').trim();
-  if (!front && !back) return null;
+  const front = String(c.vi ?? c.front ?? '').trim();
+  let back = String(c.en ?? c.back ?? '').trim();
+  let ipa = String(c.ipa ?? '').trim();
+  if (!front || !back) return null; // cần đủ câu tiếng Việt và câu tiếng Anh
+  if (!ipa) [back, ipa] = splitIPA(back); // dữ liệu cũ: IPA viết chung sau câu tiếng Anh
+  ipa = ipa.replace(/^[/[]\s*|\s*[/\]]$/g, '');
   const createdAt = Number(c.createdAt) || Date.now();
   return {
     id: typeof c.id === 'string' && c.id ? c.id : uid(),
     front,
     back,
+    ipa,
     note: String(c.note ?? '').trim(),
     queued: !!c.queued, // "Chưa thuộc" → nằm trong hàng chờ, ẩn khỏi danh sách
     queuedAt: Number(c.queuedAt) || 0,
@@ -76,20 +84,20 @@ function newDeck(name) {
 
 function sampleDeck() {
   const words = [
-    ['deforestation', 'nạn phá rừng', 'Deforestation is destroying the habitats of many species.'],
-    ['biodiversity', 'đa dạng sinh học', 'Coral reefs support an incredible level of biodiversity.'],
-    ['carbon footprint', 'lượng khí thải carbon (của một cá nhân/tổ chức)', 'Cycling to work can reduce your carbon footprint.'],
-    ['renewable energy', 'năng lượng tái tạo', 'Many countries are investing heavily in renewable energy.'],
-    ['endangered species', 'loài có nguy cơ tuyệt chủng', 'The tiger is an endangered species.'],
-    ['sustainable', 'bền vững', 'We need more sustainable ways of producing food.'],
-    ['pollutant', 'chất gây ô nhiễm', 'Factories release pollutants into rivers.'],
-    ['mitigate', 'giảm nhẹ, làm dịu bớt', 'Planting trees can help mitigate climate change.'],
+    ['Nạn phá rừng đang huỷ hoại môi trường sống của nhiều loài.', 'Deforestation is destroying the habitats of many species.', 'ˌdiːˌfɒrɪˈsteɪʃn ɪz dɪˈstrɔɪɪŋ ðə ˈhæbɪtæts əv ˈmeni ˈspiːʃiːz', 'deforestation: nạn phá rừng'],
+    ['Rạn san hô có mức đa dạng sinh học đáng kinh ngạc.', 'Coral reefs support an incredible level of biodiversity.', 'ˈkɒrəl riːfs səˈpɔːt ən ɪnˈkredəbl ˈlevl əv ˌbaɪəʊdaɪˈvɜːsəti', 'biodiversity: đa dạng sinh học'],
+    ['Đạp xe đi làm có thể giảm lượng khí thải carbon của bạn.', 'Cycling to work can reduce your carbon footprint.', 'ˈsaɪklɪŋ tə wɜːk kən rɪˈdjuːs jɔː ˈkɑːbən ˈfʊtprɪnt', 'carbon footprint: lượng khí thải carbon'],
+    ['Nhiều nước đang đầu tư mạnh vào năng lượng tái tạo.', 'Many countries are investing heavily in renewable energy.', 'ˈmeni ˈkʌntriz ə ɪnˈvestɪŋ ˈhevɪli ɪn rɪˈnjuːəbl ˈenədʒi', 'renewable energy: năng lượng tái tạo'],
+    ['Hổ là loài có nguy cơ tuyệt chủng.', 'The tiger is an endangered species.', 'ðə ˈtaɪɡə ɪz ən ɪnˈdeɪndʒəd ˈspiːʃiːz', 'endangered species: loài có nguy cơ tuyệt chủng'],
+    ['Chúng ta cần những cách sản xuất lương thực bền vững hơn.', 'We need more sustainable ways of producing food.', 'wi niːd mɔː səˈsteɪnəbl weɪz əv prəˈdjuːsɪŋ fuːd', 'sustainable: bền vững'],
+    ['Các nhà máy thải chất gây ô nhiễm ra sông.', 'Factories release pollutants into rivers.', 'ˈfæktəriz rɪˈliːs pəˈluːtənts ˈɪntə ˈrɪvəz', 'pollutant: chất gây ô nhiễm'],
+    ['Trồng cây có thể giúp giảm nhẹ biến đổi khí hậu.', 'Planting trees can help mitigate climate change.', 'ˈplɑːntɪŋ triːz kən help ˈmɪtɪɡeɪt ˈklaɪmət tʃeɪndʒ', 'mitigate: giảm nhẹ'],
   ];
   const now = Date.now();
   return {
     ...newDeck('IELTS – Environment'),
-    cards: words.map(([front, back, note], i) => ({
-      id: uid() + i, front, back, note, queued: false, queuedAt: 0, createdAt: now + i, updatedAt: now + i,
+    cards: words.map(([front, back, ipa, note], i) => ({
+      id: uid() + i, front, back, ipa, note, queued: false, queuedAt: 0, createdAt: now + i, updatedAt: now + i,
     })),
   };
 }
@@ -276,16 +284,14 @@ export function parseBulk(text) {
     if (!line) continue;
     let parts = null;
     if (line.includes('\t')) {
-      const i = line.indexOf('\t');
-      parts = [line.slice(0, i), line.slice(i + 1)];
+      parts = line.split('\t'); // dán từ bảng tính: Việt ⇥ Anh ⇥ IPA ⇥ ghi chú
     } else {
       const m = line.match(/^(.*?)\s+[-–—:]\s+(.*)$/) || line.match(/^(.*?)\s*[–—]\s*(.*)$/) || line.match(/^([^-]*?)\s*-\s*(.*)$/);
       if (m) parts = [m[1], m[2]];
     }
     if (!parts) continue;
-    const front = parts[0].trim();
-    const back = parts[1].trim();
-    if (front && back) out.push({ front, back });
+    const [front, back, ipa = '', note = ''] = parts.map((x) => x.trim());
+    if (front && back) out.push({ front, back, ipa, note });
   }
   return out;
 }
