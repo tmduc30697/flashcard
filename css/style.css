@@ -156,7 +156,7 @@ body { overflow-x: hidden; }
   background: var(--bg); cursor: pointer;
 }
 .row-text { flex: 1; min-width: 0; padding: 12px 0; }
-.row-front { font-size: 16px; word-wrap: break-word; }
+.row-front { font-size: 15px; line-height: 1.35; word-wrap: break-word; }
 
 .empty {
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -287,8 +287,9 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
 .ios-banner .msg { flex: 1; }
 .ios-banner svg.inline { width: 18px; height: 18px; vertical-align: -3px; color: var(--primary); }
 
-@media (min-width: 720px) {
-  .list-wrap { max-width: 720px; margin: 0 auto; }
+/* Phone & tablet: danh sách rộng hết màn hình. Desktop: gom vào cột giữa cho dễ đọc */
+@media (min-width: 1200px) {
+  .topbar, .tabs, .list-wrap { max-width: 880px; margin-left: auto; margin-right: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -320,7 +321,7 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .card-list > li > .row.open::before,
 .card-list > li:has(> .row.open) + li > .row::before { display: none; }
 .detail { margin-top: 12px; cursor: default; }
-.detail-back { font-size: 16px; color: var(--text); word-wrap: break-word; }
+.detail-back { font-size: 15px; line-height: 1.35; color: var(--text); word-wrap: break-word; }
 .detail-ipa { margin-top: 2px; color: var(--text-2); }
 .detail-note { margin-top: 8px; font-size: 13px; color: var(--text-2); }
 .detail-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
