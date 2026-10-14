@@ -244,7 +244,7 @@ function renderList() {
     $('#btn-shuffle').hidden = true;
     main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG },
       h('p', {}, 'Chưa có bộ thẻ nào'),
-      h('button', { type: 'button', class: 'btn btn-filled ripple', html: icon('plus'), onclick: newDeck }, 'Tạo bộ thẻ'),
+      h('button', { type: 'button', class: 'btn btn-filled ripple', html: icon('upload'), onclick: importFile }, 'Nhập từ file JSON'),
     ));
     return;
   }
