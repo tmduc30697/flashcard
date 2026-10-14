@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v13';
+const CACHE_VERSION = 'v14';
 const CACHE_NAME = 'flashcard-' + CACHE_VERSION;
 
 // Mọi file tĩnh của app (đường dẫn tương đối so với sw.js)
@@ -44,36 +44,21 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
-  event.respondWith(isHTML ? networkFirst(req) : staleWhileRevalidate(req, event));
+  // Mọi file (kể cả HTML) lấy từ cache của đúng phiên bản này để HTML/CSS/JS luôn khớp nhau.
+  // Bản mới chỉ đến khi CACHE_VERSION đổi → SW mới cài đặt → người dùng bấm "Cập nhật".
+  event.respondWith(cacheFirst(req));
 });
 
-// HTML: lấy mạng trước, rớt mạng thì dùng cache
-async function networkFirst(req) {
+async function cacheFirst(req) {
   const cache = await caches.open(CACHE_NAME);
+  const isPage = req.mode === 'navigate';
+  const cached = await cache.match(isPage ? './index.html' : req, { ignoreSearch: true });
+  if (cached) return cached;
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(req, res.clone());
+    if (res.ok && !isPage) cache.put(req, res.clone());
     return res;
   } catch {
-    return (await cache.match(req, { ignoreSearch: true })) ||
-      (await cache.match('./index.html')) ||
-      (await cache.match('./')) ||
-      Response.error();
+    return Response.error();
   }
-}
-
-// CSS/JS/icon: trả cache ngay, đồng thời cập nhật cache ở nền
-async function staleWhileRevalidate(req, event) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(req, { ignoreSearch: true });
-  const network = fetch(req).then((res) => {
-    if (res.ok) cache.put(req, res.clone());
-    return res;
-  }).catch(() => null);
-  if (cached) {
-    event.waitUntil(network);
-    return cached;
-  }
-  return (await network) || Response.error();
 }

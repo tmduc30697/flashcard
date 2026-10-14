@@ -45,7 +45,7 @@ git commit -m "Mô tả thay đổi"
 git push
 ```
 
-Sau khi push khoảng 1 phút, người dùng mở app sẽ thấy thông báo **"Có bản mới — Cập nhật"**. Nếu quên chạy `bump-version.sh`, các file CSS/JS vẫn tự cập nhật ở lần mở sau nữa (stale-while-revalidate), nhưng không có thông báo và cache cũ không được dọn.
+Sau khi push khoảng 1 phút, người dùng mở app sẽ thấy thông báo **"Có bản mới — Cập nhật"**. **Bắt buộc chạy `bump-version.sh`**: app lấy mọi file từ cache của đúng phiên bản (để HTML/CSS/JS luôn khớp nhau), nên nếu không đổi `CACHE_VERSION` thì máy đã cài sẽ **không** nhận code mới.
 
 Khi thêm file tĩnh mới (CSS/JS/icon), nhớ thêm đường dẫn vào mảng `PRECACHE` trong `sw.js`.
 

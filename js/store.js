@@ -341,6 +341,14 @@ export function mergeRemote(remote, { dropLocal = false } = {}) {
   const alive = (x) => !(deleted[x.id] >= x.updatedAt);
 
   const pick = (a, b) => (!a ? b : !b ? a : b.updatedAt > a.updatedAt ? b : a);
+  // Cùng thời điểm sửa mà một bên mất IPA (do bản app cũ làm rơi) → giữ IPA của bên còn lại
+  const pickCard = (a, b) => {
+    const winner = pick(a, b);
+    const other = winner === a ? b : a;
+    const win = { ...winner };
+    if (other && other.updatedAt === win.updatedAt && !win.ipa && other.ipa) win.ipa = other.ipa;
+    return win;
+  };
   const mergeList = (la, ra, mergeItem) => {
     const rMap = new Map(ra.map((x) => [x.id, x]));
     const seen = new Set();
@@ -352,7 +360,7 @@ export function mergeRemote(remote, { dropLocal = false } = {}) {
 
   const decks = mergeList(local.decks, rDecks, (l, r) => {
     const base = pick(l, r);
-    return { ...base, cards: mergeList(l?.cards || [], r?.cards || [], (lc, rc) => ({ ...pick(lc, rc) })) };
+    return { ...base, cards: mergeList(l?.cards || [], r?.cards || [], pickCard) };
   });
 
   state.decks = decks;
