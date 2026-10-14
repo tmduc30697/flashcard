@@ -265,7 +265,15 @@ function renderList() {
   const main = $('#list');
   $('#deck-title').textContent = deck?.name || 'Flashcard';
   document.title = deck ? `${deck.name} · Flashcard` : 'Flashcard';
-  if (!deck) { main.replaceChildren(); return; }
+  $('#fab').hidden = !deck;
+  $('#btn-study').hidden = !deck;
+  if (!deck) {
+    main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG },
+      h('p', {}, 'Chưa có bộ thẻ nào'),
+      h('button', { type: 'button', class: 'btn btn-filled ripple', html: icon('plus'), onclick: newDeck }, 'Tạo bộ thẻ'),
+    ));
+    return;
+  }
 
   const todo = deck.cards.filter((c) => !c.known);
   const known = deck.cards.filter((c) => c.known);
@@ -508,8 +516,9 @@ export function addMenuItems(fn) { menuProviders.push(fn); }
 
 function openDeckMenu(anchor) {
   const deck = store.currentDeck();
+  const decks = store.getDecks();
   openMenu(anchor, [
-    { icon: 'edit', text: 'Đổi tên bộ thẻ', onClick: async () => {
+    ...(deck ? [{ icon: 'edit', text: 'Đổi tên bộ thẻ', onClick: async () => {
       const name = await promptDialog('Đổi tên bộ thẻ', deck.name);
       if (name) store.renameDeck(deck.id, name);
     } },
@@ -518,11 +527,25 @@ function openDeckMenu(anchor) {
       const ok = await confirmDialog('Xóa bộ thẻ?', `Bộ “${deck.name}” và ${deck.cards.length} thẻ bên trong sẽ bị xóa vĩnh viễn. Nên xuất JSON để sao lưu trước.`);
       if (ok) { store.deleteDeck(deck.id); snackbar('Đã xóa bộ thẻ'); }
     } },
-    '-',
+    '-'] : []),
     { icon: 'upload', text: 'Nhập từ file JSON', onClick: importFile },
-    { icon: 'download', text: 'Xuất toàn bộ (sao lưu)', onClick: exportAll },
+    ...(decks.length ? [
+      { icon: 'download', text: 'Xuất toàn bộ (sao lưu)', onClick: exportAll },
+      { icon: 'delete', text: 'Xóa tất cả bộ thẻ', danger: true, onClick: deleteAll },
+    ] : []),
     ...menuProviders.flatMap((fn) => fn()),
   ]);
+}
+
+async function deleteAll() {
+  const decks = store.getDecks();
+  const cards = decks.reduce((n, d) => n + d.cards.length, 0);
+  const ok = await confirmDialog('Xóa tất cả bộ thẻ?',
+    `${decks.length} bộ với ${cards} thẻ sẽ bị xóa (cả trên Gist nếu đang đồng bộ). Nên chọn “Xuất toàn bộ” để sao lưu trước.`,
+    'Xóa tất cả');
+  if (!ok) return;
+  const removed = store.deleteAllDecks();
+  snackbar(`Đã xóa ${removed.length} bộ thẻ`, { action: 'Hoàn tác', onAction: () => store.restoreDecks(removed), duration: 8000 });
 }
 
 export function initList({ onStudy }) {

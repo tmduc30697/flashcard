@@ -192,7 +192,7 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
   display: flex; flex-direction: column; align-items: center; text-align: center;
   padding: 64px 32px; color: var(--text-2);
 }
-.empty svg { width: 180px; height: 150px; margin-bottom: 20px; }
+.empty > svg { width: 180px; height: 150px; margin-bottom: 20px; }
 .empty p { margin: 0; font-size: 15px; }
 .all-known { padding: 24px 32px 8px; text-align: center; color: var(--text-2); font-size: 14px; }
 
@@ -381,3 +381,4 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .steps { margin: 0 0 16px; padding-left: 24px; font-size: 14px; line-height: 1.6; }
 .steps a { color: var(--primary); font-weight: 500; }
 .hint.error { color: var(--danger); margin-top: 0; }
+.empty .btn { margin-top: 20px; }

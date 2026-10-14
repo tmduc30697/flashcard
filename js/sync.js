@@ -123,8 +123,8 @@ export function syncNow({ manual = false } = {}) {
         if (content) {
           try { remote = JSON.parse(content); } catch { remote = null; }
         }
-        // Máy mới chỉ có bộ mẫu chưa đụng tới → lấy nguyên dữ liệu trên Gist, không trộn bộ mẫu vào
-        const dropLocal = store.isPristine() && remote?.decks?.length > 0;
+        // Máy mới chỉ có bộ mẫu chưa đụng tới → lấy nguyên dữ liệu trên Gist (kể cả khi Gist đã trống), không trộn bộ mẫu vào
+        const dropLocal = store.isPristine() && Array.isArray(remote?.decks);
         if (remote) store.mergeRemote(remote, { dropLocal });
         const next = serialize();
         if (next !== content) await writeGist(next);

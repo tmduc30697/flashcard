@@ -113,8 +113,7 @@ export function load() {
 }
 
 function ensureDeck() {
-  if (!state.decks.length) state.decks = [newDeck('Bộ thẻ của tôi')];
-  if (!state.decks.some((d) => d.id === state.currentDeckId)) state.currentDeckId = state.decks[0].id;
+  if (!state.decks.some((d) => d.id === state.currentDeckId)) state.currentDeckId = state.decks[0]?.id ?? null;
 }
 
 function persist() {
@@ -163,8 +162,29 @@ export function deleteDeck(id) {
   if (i < 0) return;
   state.decks.splice(i, 1);
   state.deleted[id] = Date.now();
-  if (!state.decks.length) state.decks.push(newDeck('Bộ thẻ của tôi'));
-  if (state.currentDeckId === id) state.currentDeckId = state.decks[Math.max(0, i - 1)].id;
+  if (state.currentDeckId === id) state.currentDeckId = state.decks[Math.max(0, i - 1)]?.id ?? null;
+  save();
+}
+
+// Xóa mọi bộ thẻ; trả về danh sách đã xóa để có thể hoàn tác
+export function deleteAllDecks() {
+  const removed = state.decks;
+  const now = Date.now();
+  for (const d of removed) state.deleted[d.id] = now;
+  state.decks = [];
+  state.currentDeckId = null;
+  save();
+  return removed;
+}
+
+export function restoreDecks(decks) {
+  const now = Date.now();
+  for (const d of decks) {
+    delete state.deleted[d.id];
+    d.updatedAt = now; // mới hơn lần xóa → thắng khi gộp ở máy khác
+    if (!getDeck(d.id)) state.decks.push(d);
+  }
+  ensureDeck();
   save();
 }
 
