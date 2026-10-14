@@ -275,22 +275,14 @@ function renderList() {
     ));
   }
   main.replaceChildren(...parts);
-  main.querySelectorAll('.interlinear').forEach(fitInterlinear);
 }
 
-// Câu ở trên, IPA ngay dưới, cùng font monospace để từng từ thẳng hàng; mỗi thứ đúng 1 dòng
-function interlinear(text) {
+// Mặt sau: câu ở trên, IPA ngay dưới (cùng font, cỡ chữ với mặt trước)
+function backText(text) {
   const [main, ipa] = splitIPA(text);
-  if (!ipa) return h('div', { class: 'detail-back' }, main);
-  return h('div', { class: 'interlinear' },
-    h('div', { class: 'il-en' }, main),
-    h('div', { class: 'il-ipa' }, ipa.replace(/^[/[]|[/\]]$/g, '')));
-}
-const IL_SIZE = 17;
-function fitInterlinear(el) {
-  el.style.fontSize = IL_SIZE + 'px';
-  const avail = el.parentElement.clientWidth;
-  if (el.scrollWidth > avail) el.style.fontSize = `${Math.max(11, Math.floor((IL_SIZE * avail / el.scrollWidth) * 10) / 10)}px`;
+  return h('div', { class: 'detail-back' },
+    h('div', {}, main),
+    ipa && h('div', { class: 'detail-ipa' }, ipa.replace(/^[/[]|[/\]]$/g, '')));
 }
 
 function cardRow(deck, card) {
@@ -303,7 +295,7 @@ function cardRow(deck, card) {
   h('div', { class: 'row-text' },
     h('div', { class: 'row-front' }, card.front),
     open && h('div', { class: 'detail', onclick: (e) => e.stopPropagation() },
-      card.back && interlinear(card.back),
+      card.back && backText(card.back),
       card.note && h('div', { class: 'detail-note' }, card.note),
       h('div', { class: 'detail-actions' },
         h('button', { type: 'button', class: 'chip ripple', onclick: act(() => markQueued(deck, card)) }, 'Chưa thuộc'),
@@ -575,7 +567,6 @@ export function initList() {
   $('#btn-menu').addEventListener('click', (e) => openDeckMenu(e.currentTarget));
   $('#btn-shuffle').addEventListener('click', shuffle);
   attachDeckSwipe($('#list'));
-  window.addEventListener('resize', () => document.querySelectorAll('#list .interlinear').forEach(fitInterlinear));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeMenu(); closeSheet(); }
   });
