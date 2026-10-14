@@ -140,36 +140,21 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
 .tab svg { width: 18px; height: 18px; }
 
 /* ---------- Danh sách thẻ ---------- */
-.list-wrap { padding: 8px var(--sar) calc(112px + var(--sab)) var(--sal); }
+.list-wrap {
+  padding: 8px var(--sar) calc(112px + var(--sab)) var(--sal);
+  min-height: calc(100dvh - 113px - var(--sat)); /* vùng trống phía dưới vẫn vuốt được */
+  touch-action: pan-y; /* vuốt ngang để JS chuyển bộ thẻ */
+}
+body { overflow-x: hidden; }
 .card-list { list-style: none; margin: 0; padding: 0; }
 
-.row-wrap { position: relative; overflow: hidden; }
-.row-bg {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end;
-  padding-right: 24px; background: var(--danger); color: #fff; opacity: 0;
-}
 .row {
   position: relative; display: flex; align-items: flex-start; gap: 4px;
-  padding: 6px 16px 6px 4px; min-height: 64px;
-  background: var(--bg); cursor: pointer; touch-action: pan-y;
-  transition: transform 0.2s ease;
+  padding: 6px 16px 6px 20px; min-height: 56px;
+  background: var(--bg); cursor: pointer;
 }
-.row.dragging { transition: none; }
-.check {
-  width: 48px; height: 48px; flex: none; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; color: var(--text-2);
-}
-.check .circle {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid currentColor; display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-.check .circle svg { width: 16px; height: 16px; opacity: 0; transition: opacity 0.15s; }
-.check:hover .circle svg { opacity: 0.6; }
 .row-text { flex: 1; min-width: 0; padding: 12px 0; }
 .row-front { font-size: 16px; word-wrap: break-word; }
-.row.pop { animation: pop 0.3s ease; }
-@keyframes pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
 .empty {
   display: flex; flex-direction: column; align-items: center; text-align: center;
