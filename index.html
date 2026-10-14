@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Flashcard</title>
+  <meta name="description" content="Học từ vựng bằng flashcard, chạy offline.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Flashcard">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <!-- Màn hình danh sách -->
+  <div id="screen-list" class="screen">
+    <header class="topbar">
+      <h1 id="deck-title" class="topbar-title">Flashcard</h1>
+      <button id="btn-study" class="btn-tonal ripple" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg>
+        Học
+      </button>
+      <button id="btn-menu" class="icon-btn ripple" type="button" aria-label="Menu" aria-haspopup="menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+      </button>
+    </header>
+    <nav id="tabs" class="tabs" role="tablist" aria-label="Bộ thẻ"></nav>
+
+    <main id="list" class="list-wrap"></main>
+
+    <button id="fab" class="fab ripple" type="button" aria-label="Thêm thẻ">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+    </button>
+  </div>
+
+  <!-- Màn hình học -->
+  <div id="screen-study" class="screen study" hidden>
+    <header class="topbar">
+      <button id="study-close" class="icon-btn ripple" type="button" aria-label="Đóng">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+      <h1 id="study-title" class="topbar-title">Học</h1>
+      <button id="study-reverse" class="icon-btn ripple" type="button" aria-label="Đảo chiều" aria-pressed="false" title="Đảo chiều (hiện mặt sau trước)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+      </button>
+    </header>
+    <div class="study-progress"><div id="study-bar" class="study-bar"></div></div>
+    <div id="study-body" class="study-body"></div>
+  </div>
+
+  <!-- Lớp phủ dùng chung -->
+  <div id="scrim" class="scrim" hidden></div>
+  <section id="sheet" class="sheet" role="dialog" aria-modal="true" hidden></section>
+  <div id="menu" class="menu" role="menu" hidden></div>
+  <div id="dialog-wrap" class="dialog-wrap" hidden></div>
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite" hidden></div>
+  <div id="ios-banner" class="ios-banner" hidden></div>
+  <input id="file-input" type="file" accept="application/json,.json" hidden>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
