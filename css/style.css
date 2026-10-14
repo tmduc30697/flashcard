@@ -344,3 +344,13 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .done-box .done-title { font-size: 20px; color: var(--text); }
 .done-icon svg { width: 72px; height: 72px; color: var(--primary); margin-bottom: 12px; }
 .done-box .btn { margin-top: 20px; }
+
+/* Số thẻ còn lại cạnh tên bộ */
+.tab-count {
+  min-width: 20px; height: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-3); color: var(--text-2); font-size: 12px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.tab[aria-selected="true"] .tab-count { background: var(--primary-container); color: var(--on-primary-container); }
+.title-count { margin-left: 8px; font-size: 16px; color: var(--text-2); font-variant-numeric: tabular-nums; }

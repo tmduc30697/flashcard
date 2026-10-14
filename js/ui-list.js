@@ -193,6 +193,9 @@ export function importFile() {
 }
 
 // ---------- Tab bộ thẻ ----------
+// Số thẻ còn lại trong danh sách (không tính hàng chờ)
+const remaining = (deck) => deck.cards.filter((c) => !c.queued).length;
+
 function renderTabs() {
   const nav = $('#tabs');
   const cur = store.currentDeck();
@@ -200,7 +203,7 @@ function renderTabs() {
     type: 'button', role: 'tab', class: 'tab ripple',
     'aria-selected': String(d.id === cur?.id),
     onclick: () => store.setCurrentDeck(d.id),
-  }, d.name));
+  }, d.name, h('span', { class: 'tab-count' }, remaining(d))));
   tabs.push(h('button', {
     type: 'button', class: 'tab ripple', html: icon('plus'), onclick: newDeck,
   }, 'Bộ mới'));
@@ -235,7 +238,7 @@ const EMPTY_SVG = `<svg viewBox="0 0 180 150" aria-hidden="true">
 function renderList() {
   const deck = store.currentDeck();
   const main = $('#list');
-  $('#deck-title').textContent = deck?.name || 'Flashcard';
+  $('#deck-title').replaceChildren(deck?.name || 'Flashcard', deck ? h('span', { class: 'title-count' }, remaining(deck)) : '');
   document.title = deck ? `${deck.name} · Flashcard` : 'Flashcard';
   $('#fab').hidden = !deck;
   if (!deck) {

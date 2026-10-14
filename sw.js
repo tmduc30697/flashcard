@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const CACHE_NAME = 'flashcard-' + CACHE_VERSION;
 
 // Mọi file tĩnh của app (đường dẫn tương đối so với sw.js)
