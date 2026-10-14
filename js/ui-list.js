@@ -10,7 +10,6 @@ const P = {
   plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z',
   edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
   delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
-  download: 'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z',
   upload: 'M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z',
   install: 'M17 1.01 7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-1-6h-3V8h-2v5H8l4 4 4-4z',
   note: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
@@ -42,6 +41,30 @@ export function h(tag, attrs = {}, ...children) {
     el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   }
   return el;
+}
+
+// ---------- Tách phiên âm IPA ----------
+// "These sales are lame af. 'ðiz 'seɪlz ɚ 'leɪm" → ["These sales are lame af.", "'ðiz 'seɪlz ɚ 'leɪm"]
+// "obesity /əʊˈbiːsəti/" → ["obesity", "/əʊˈbiːsəti/"]
+const IPA_CHAR = /[ˈˌːəɚɝɪʊɛæʌɔɑɒɜðθʃʒŋɹɾʔɡ]/;
+const isIpaToken = (t) => IPA_CHAR.test(t) || /^['ˈˌ]/.test(t);
+export function splitIPA(text) {
+  const s = String(text || '').trim();
+  const slash = s.match(/^(.+?)\s*([/[][^/[\]]+[/\]])$/s);
+  if (slash && IPA_CHAR.test(slash[2])) return [slash[1], slash[2]];
+  // Phần sau dấu kết câu cuối cùng toàn là phiên âm
+  const end = s.match(/^(.*[.!?…])\s+(\S.*)$/s);
+  if (end && IPA_CHAR.test(end[2]) && !/[.!?…]$/.test(end[2]) && end[2].split(/\s+/).filter(isIpaToken).length * 2 > end[2].split(/\s+/).length) {
+    return [end[1], end[2]];
+  }
+  // Không có dấu câu: lấy dãy token phiên âm ở cuối
+  const tokens = s.split(/\s+/);
+  let i = tokens.length;
+  while (i > 1 && isIpaToken(tokens[i - 1])) i--;
+  if (i < tokens.length && tokens.slice(i).some((t) => IPA_CHAR.test(t))) {
+    return [tokens.slice(0, i).join(' '), tokens.slice(i).join(' ')];
+  }
+  return [s, ''];
 }
 
 // ---------- Ripple ----------
@@ -174,36 +197,7 @@ export function promptDialog(title, value = '', okText = 'Lưu') {
   });
 }
 
-// ---------- Xuất / nhập file ----------
-export async function downloadJSON(data, filename) {
-  const text = JSON.stringify(data, null, 2);
-  const file = new File([text], filename, { type: 'application/json' });
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  // Trong app đã cài trên iOS, tải file trực tiếp không ổn định → dùng bảng Chia sẻ nếu có.
-  if (standalone && navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: filename }); return; } catch (e) {
-      if (e.name === 'AbortError') return;
-    }
-  }
-  const url = URL.createObjectURL(file);
-  const a = h('a', { href: url, download: filename });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function slug(s) {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'bo-the';
-}
-export function exportDeck(deck) {
-  downloadJSON(store.exportData(deck.id), `flashcard-${slug(deck.name)}.json`);
-}
-export function exportAll() {
-  const d = new Date().toISOString().slice(0, 10);
-  downloadJSON(store.exportData(), `flashcard-backup-${d}.json`);
-}
+// ---------- Nhập file ----------
 export function importFile() {
   const input = $('#file-input');
   input.value = '';
@@ -299,6 +293,11 @@ function renderList() {
   flashId = null;
 }
 
+function textWithIPA(cls, text) {
+  const [main, ipa] = splitIPA(text);
+  return h('div', { class: cls }, main, ipa && h('span', { class: 'row-ipa' }, ' ' + ipa));
+}
+
 function cardRow(deck, card) {
   const row = h('div', {
     class: 'row' + (card.known ? ' known' : '') + (card.id === flashId ? ' pop' : ''),
@@ -319,8 +318,8 @@ function cardRow(deck, card) {
     },
   }),
   h('div', { class: 'row-text' },
-    h('div', { class: 'row-front' }, card.front),
-    card.back && h('div', { class: 'row-back' }, card.back),
+    textWithIPA('row-front', card.front),
+    card.back && textWithIPA('row-back', card.back),
     card.note && h('div', { class: 'row-note', html: icon('note') }, h('span', {}, card.note)),
   ));
   row.addEventListener('click', () => { if (!row.dataset.swiped) openEditSheet(deck, card); });
@@ -522,15 +521,15 @@ function openDeckMenu(anchor) {
       const name = await promptDialog('Đổi tên bộ thẻ', deck.name);
       if (name) store.renameDeck(deck.id, name);
     } },
-    { icon: 'download', text: 'Xuất bộ này (JSON)', onClick: () => exportDeck(deck) },
     { icon: 'delete', text: 'Xóa bộ thẻ', danger: true, onClick: async () => {
-      const ok = await confirmDialog('Xóa bộ thẻ?', `Bộ “${deck.name}” và ${deck.cards.length} thẻ bên trong sẽ bị xóa vĩnh viễn. Nên xuất JSON để sao lưu trước.`);
-      if (ok) { store.deleteDeck(deck.id); snackbar('Đã xóa bộ thẻ'); }
+      const ok = await confirmDialog('Xóa bộ thẻ?', `Bộ “${deck.name}” và ${deck.cards.length} thẻ bên trong sẽ bị xóa.`);
+      if (!ok) return;
+      store.deleteDeck(deck.id);
+      snackbar('Đã xóa bộ thẻ', { action: 'Hoàn tác', onAction: () => store.restoreDecks([deck]), duration: 8000 });
     } },
     '-'] : []),
     { icon: 'upload', text: 'Nhập từ file JSON', onClick: importFile },
     ...(decks.length ? [
-      { icon: 'download', text: 'Xuất toàn bộ (sao lưu)', onClick: exportAll },
       { icon: 'delete', text: 'Xóa tất cả bộ thẻ', danger: true, onClick: deleteAll },
     ] : []),
     ...menuProviders.flatMap((fn) => fn()),
@@ -541,7 +540,7 @@ async function deleteAll() {
   const decks = store.getDecks();
   const cards = decks.reduce((n, d) => n + d.cards.length, 0);
   const ok = await confirmDialog('Xóa tất cả bộ thẻ?',
-    `${decks.length} bộ với ${cards} thẻ sẽ bị xóa (cả trên Gist nếu đang đồng bộ). Nên chọn “Xuất toàn bộ” để sao lưu trước.`,
+    `${decks.length} bộ với ${cards} thẻ sẽ bị xóa (cả trên Gist nếu đang đồng bộ).`,
     'Xóa tất cả');
   if (!ok) return;
   const removed = store.deleteAllDecks();

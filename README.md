@@ -74,7 +74,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 ## Sử dụng nhanh
 
 - **Tab trên cùng**: mỗi tab là một bộ thẻ; tab cuối "+ Bộ mới" để tạo bộ.
-- **Menu ⋮**: đổi tên / xóa / xuất bộ hiện tại, nhập file JSON, xuất toàn bộ, cài app.
+- **Menu ⋮**: đổi tên / xóa bộ hiện tại, nhập file JSON, xóa tất cả bộ, đồng bộ Gist, cài app.
 - **Vòng tròn bên trái**: đánh dấu "Đã thuộc" — thẻ chuyển xuống mục *Đã thuộc (n)* ở cuối.
 - **Bấm vào thẻ**: sửa / xóa. **Vuốt sang trái**: xóa nhanh (có Hoàn tác).
 - **Nút +**: thêm thẻ, hoặc chuyển sang **Thêm nhiều** để dán cả danh sách.
@@ -114,37 +114,27 @@ mitigate	giảm nhẹ
 
 Dòng trống hoặc không có dấu ngăn cách sẽ bị bỏ qua; app hiển thị số thẻ hợp lệ trước khi thêm.
 
-## Định dạng file JSON xuất / nhập
+## Định dạng file JSON để nhập
+
+Menu ⋮ → **Nhập từ file JSON**. Định dạng tối thiểu:
 
 ```json
 {
-  "format": "flashcard-pwa",
-  "version": 1,
-  "exportedAt": "2026-10-14T03:00:00.000Z",
   "decks": [
     {
-      "id": "lx2k9a3f8d",
-      "name": "IELTS – Environment",
-      "createdAt": 1760410800000,
+      "name": "IELTS – Health",
       "cards": [
-        {
-          "id": "lx2k9a4b1c",
-          "front": "deforestation",
-          "back": "nạn phá rừng",
-          "note": "Deforestation is destroying the habitats of many species.",
-          "known": false,
-          "createdAt": 1760410800000
-        }
+        { "front": "obesity /əʊˈbiːsəti/", "back": "béo phì", "note": "Obesity rates have risen sharply." }
       ]
     }
   ]
 }
 ```
 
-- Trường bắt buộc của thẻ: `front`, `back`. Các trường khác (`id`, `note`, `known`, `createdAt`) có thể bỏ trống.
-- Khi nhập, app chấp nhận: object có `decks`, một mảng các bộ, hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
+- Mỗi thẻ cần `front` và `back`; `note` tuỳ chọn. App tự cấp id, thời gian; mọi thẻ nhập vào là chưa thuộc.
+- Chấp nhận: object có `decks`, một mảng các bộ, hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
 - Bộ nhập vào luôn được **thêm mới**, không ghi đè bộ đang có (trùng tên sẽ thành "Tên (2)").
-- Để chia sẻ cho học viên: menu ⋮ → **Xuất bộ này (JSON)** → gửi file; học viên mở app → menu ⋮ → **Nhập từ file JSON**.
+- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tự tách ra dòng riêng, chữ nhỏ hơn.
 
 ## Cấu trúc thư mục
 
@@ -154,7 +144,7 @@ manifest.json       Thông tin cài đặt PWA
 sw.js               Service worker (cache offline, cập nhật)
 css/style.css
 js/app.js           Khởi động, điều hướng, đăng ký SW, banner cài đặt/cập nhật
-js/store.js         localStorage, xuất/nhập JSON, dữ liệu mẫu
+js/store.js         localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu đồng bộ
 js/ui-list.js       Tab bộ thẻ, danh sách thẻ, bottom sheet, snackbar
 js/ui-study.js      Chế độ học
 js/sync.js          Đồng bộ với GitHub Gist

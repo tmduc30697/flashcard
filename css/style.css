@@ -382,3 +382,16 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .steps a { color: var(--primary); font-weight: 500; }
 .hint.error { color: var(--danger); margin-top: 0; }
 .empty .btn { margin-top: 20px; }
+
+/* ---------- Cỡ chữ thẻ học theo độ dài & phiên âm ---------- */
+.flip-face { gap: 12px; }
+.flip-main { line-height: 1.25; }
+.flip-main.medium { font-size: clamp(21px, 5.6vw, 26px); }
+.flip-main.long { font-size: clamp(18px, 4.8vw, 21px); font-weight: 400; line-height: 1.4; }
+.flip-ipa, .row-ipa {
+  font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Lucida Sans Unicode", "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+}
+.flip-ipa { font-size: 17px; opacity: 0.65; letter-spacing: 0.01em; }
+.row-ipa { color: var(--text-2); font-size: 13px; opacity: 0.85; }
+.flip-note { max-width: 36ch; line-height: 1.45; }

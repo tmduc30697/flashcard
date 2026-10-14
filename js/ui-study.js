@@ -1,6 +1,6 @@
 // Chế độ học: mỗi lần một thẻ, chạm để lật, đánh dấu Đã thuộc / Chưa thuộc.
 import * as store from './store.js';
-import { h, icon, snackbar } from './ui-list.js';
+import { h, icon, snackbar, splitIPA } from './ui-list.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -45,6 +45,13 @@ function currentCard() {
   return null;
 }
 
+// Nội dung một mặt thẻ: chữ chính (cỡ chữ theo độ dài) + dòng phiên âm riêng nếu có
+function face(text) {
+  const [main, ipa] = splitIPA(text);
+  const size = main.length > 60 ? ' long' : main.length > 24 ? ' medium' : '';
+  return [h('div', { class: 'flip-main' + size }, main), ipa && h('div', { class: 'flip-ipa' }, ipa)];
+}
+
 function render() {
   const body = $('#study-body');
   const total = session.queue.length;
@@ -59,10 +66,10 @@ function render() {
   const flip = h('div', { class: 'flip card-enter', role: 'button', tabindex: '0', 'aria-label': 'Chạm để lật thẻ' },
     h('div', { class: 'flip-inner' },
       h('div', { class: 'flip-face front' },
-        h('div', { class: 'flip-main' }, first),
+        ...face(first),
         h('div', { class: 'flip-hint' }, 'Chạm để lật')),
       h('div', { class: 'flip-face back' },
-        h('div', { class: 'flip-main' }, second),
+        ...face(second),
         card.note && h('div', { class: 'flip-note' }, card.note)),
     ));
   const toggle = () => { session.flipped = !session.flipped; flip.classList.toggle('flipped', session.flipped); };

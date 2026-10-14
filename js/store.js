@@ -184,6 +184,7 @@ export function restoreDecks(decks) {
     d.updatedAt = now; // mới hơn lần xóa → thắng khi gộp ở máy khác
     if (!getDeck(d.id)) state.decks.push(d);
   }
+  if (decks[0]) state.currentDeckId = decks[0].id;
   ensureDeck();
   save();
 }
@@ -250,17 +251,7 @@ export function parseBulk(text) {
   return out;
 }
 
-// ---- Xuất / nhập JSON ----
-export function exportData(deckId) {
-  const decks = deckId ? [getDeck(deckId)].filter(Boolean) : state.decks;
-  return {
-    format: FORMAT,
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    decks: JSON.parse(JSON.stringify(decks)),
-  };
-}
-
+// ---- Nhập JSON ----
 // Nhập: nhận {decks:[...]}, một deck {name, cards}, hoặc mảng deck.
 // Bộ nhập vào luôn được thêm mới (id mới) để không ghi đè dữ liệu đang có.
 export function importData(json) {
