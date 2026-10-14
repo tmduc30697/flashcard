@@ -1,34 +1,9 @@
-// Khởi động app: điều hướng, service worker, banner cài đặt / cập nhật.
+// Khởi động app: service worker, banner cài đặt / cập nhật.
 import * as store from './store.js';
-import { initList, initRipple, addMenuItems, snackbar, closeSheet, closeMenu, h, icon } from './ui-list.js';
-import { initStudy, startStudy, stopStudy } from './ui-study.js';
+import { initList, initRipple, addMenuItems, snackbar, h, icon } from './ui-list.js';
 import { initSync } from './sync.js';
 
 const $ = (sel) => document.querySelector(sel);
-
-// ---------- Điều hướng bằng hash: '' = danh sách, '#study' = học ----------
-function route() {
-  const study = location.hash === '#study';
-  closeSheet();
-  closeMenu();
-  if (study && !startStudy()) {
-    history.replaceState(null, '', location.pathname + location.search);
-    return route();
-  }
-  if (!study) stopStudy();
-  $('#screen-list').hidden = study;
-  $('#screen-study').hidden = !study;
-  window.scrollTo(0, 0);
-}
-
-function goStudy() {
-  const deck = store.currentDeck();
-  if (!deck?.cards.some((c) => !c.known)) {
-    snackbar(deck?.cards.length ? 'Bạn đã thuộc hết bộ này' : 'Bộ này chưa có thẻ nào');
-    return;
-  }
-  location.hash = 'study';
-}
 
 // ---------- Service worker & cập nhật ----------
 function initServiceWorker() {
@@ -112,11 +87,7 @@ function initInstall() {
 // ---------- Khởi động ----------
 store.load();
 initRipple();
-initList({ onStudy: goStudy });
-initStudy();
-if (location.hash === '#study') history.replaceState(null, '', location.pathname + location.search);
-window.addEventListener('hashchange', route);
-route();
+initList();
 initInstall();
 initSync();
 initServiceWorker();

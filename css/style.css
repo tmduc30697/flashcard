@@ -166,27 +166,10 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
 }
 .check .circle svg { width: 16px; height: 16px; opacity: 0; transition: opacity 0.15s; }
 .check:hover .circle svg { opacity: 0.6; }
-.row.known .check { color: var(--primary); }
-.row.known .check .circle { background: var(--primary); border-color: var(--primary); color: var(--bg); }
-.row.known .check .circle svg { opacity: 1; }
 .row-text { flex: 1; min-width: 0; padding: 12px 0; }
-.row-front { font-weight: 600; font-size: 16px; word-wrap: break-word; }
-.row-back { color: var(--text-2); font-size: 14px; margin-top: 2px; word-wrap: break-word; }
-.row-note { color: var(--text-2); font-size: 13px; margin-top: 4px; opacity: 0.8; white-space: nowrap; overflow: hidden;
-  display: flex; gap: 4px; align-items: center; }
-.row-note svg { width: 14px; height: 14px; }
-.row.known .row-front { text-decoration: line-through; color: var(--text-2); font-weight: 500; }
+.row-front { font-size: 16px; word-wrap: break-word; }
 .row.pop { animation: pop 0.3s ease; }
 @keyframes pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-
-.known-head {
-  width: 100%; display: flex; align-items: center; gap: 12px;
-  min-height: 56px; padding: 0 16px 0 20px; margin-top: 8px;
-  border-top: 1px solid var(--divider);
-  font-size: 15px; font-weight: 500; color: var(--text); text-align: left;
-}
-.known-head svg { transition: transform 0.2s; color: var(--text-2); }
-.known-head[aria-expanded="true"] svg { transform: rotate(180deg); }
 
 .empty {
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -194,7 +177,7 @@ svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
 }
 .empty > svg { width: 180px; height: 150px; margin-bottom: 20px; }
 .empty p { margin: 0; font-size: 15px; }
-.all-known { padding: 24px 32px 8px; text-align: center; color: var(--text-2); font-size: 14px; }
+
 
 /* ---------- FAB ---------- */
 .fab {
@@ -317,51 +300,6 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
 .ios-banner .msg { flex: 1; }
 .ios-banner svg.inline { width: 18px; height: 18px; vertical-align: -3px; color: var(--primary); }
 
-/* ---------- Chế độ học ---------- */
-.study { display: flex; flex-direction: column; height: 100%; min-height: 100dvh; }
-.study .topbar { padding-left: calc(4px + var(--sal)); }
-.study-progress { height: 4px; margin: 0 16px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
-.study-bar { height: 100%; width: 0; background: var(--primary); border-radius: 2px; transition: width 0.3s; }
-.study-body {
-  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 16px calc(20px + var(--sar)) calc(20px + var(--sab)) calc(20px + var(--sal));
-}
-.study-count { color: var(--text-2); font-size: 14px; margin-bottom: 16px; }
-.flip { width: 100%; max-width: 480px; flex: 1; max-height: 440px; min-height: 260px; perspective: 1200px; cursor: pointer; }
-.flip-inner {
-  position: relative; width: 100%; height: 100%;
-  transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.2, 0, 0, 1);
-}
-.flip.flipped .flip-inner { transform: rotateY(180deg); }
-.flip-face {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 16px; padding: 28px; border-radius: 28px; text-align: center;
-  background: var(--surface-2); box-shadow: var(--shadow-1);
-  backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto;
-}
-.flip-face.back { transform: rotateY(180deg); background: var(--primary-container); color: var(--on-primary-container); }
-.flip-main { font-size: clamp(24px, 7vw, 34px); font-weight: 500; word-wrap: break-word; max-width: 100%; }
-.flip-note { font-size: 15px; opacity: 0.8; font-style: italic; }
-.flip-hint { position: absolute; bottom: 16px; font-size: 12px; color: var(--text-2); }
-.flip-face.back .flip-hint { color: inherit; opacity: 0.7; }
-.study-actions { display: flex; gap: 12px; width: 100%; max-width: 480px; margin-top: 24px; }
-.study-actions .btn { flex: 1; height: 56px; border-radius: 28px; font-size: 16px; }
-.btn-unknown { background: var(--surface-3); color: var(--text); }
-.btn-known { background: var(--primary); color: var(--on-primary); }
-.card-enter { animation: card-enter 0.25s ease-out; }
-@keyframes card-enter { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
-
-.summary { text-align: center; width: 100%; max-width: 400px; }
-.summary svg.big { width: 96px; height: 96px; color: var(--primary); }
-.summary h2 { font-size: 24px; font-weight: 400; margin: 8px 0 24px; }
-.stats { display: flex; gap: 12px; margin-bottom: 28px; }
-.stat { flex: 1; padding: 16px; border-radius: 20px; background: var(--surface-2); }
-.stat b { display: block; font-size: 32px; font-weight: 500; }
-.stat.ok b { color: var(--success); }
-.stat.no b { color: var(--danger); }
-.stat span { font-size: 13px; color: var(--text-2); }
-.summary .btn { width: 100%; height: 52px; margin-bottom: 8px; border-radius: 26px; }
-
 @media (min-width: 720px) {
   .list-wrap { max-width: 720px; margin: 0 auto; }
 }
@@ -371,7 +309,6 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
 
 /* Khi bottom sheet đang mở, snackbar hiện ở trên để không che nút Lưu */
 body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
-.row-note span { overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- Đồng bộ ---------- */
 .icon-btn.syncing svg { animation: spin 1s linear infinite; color: var(--primary); }
@@ -383,25 +320,31 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .hint.error { color: var(--danger); margin-top: 0; }
 .empty .btn { margin-top: 20px; }
 
-/* ---------- Cỡ chữ thẻ học theo độ dài & phiên âm ---------- */
-.flip-face { gap: 12px; }
-.flip-main { line-height: 1.25; }
-.flip-main.medium { font-size: clamp(21px, 5.6vw, 26px); }
-.flip-main.long { font-size: clamp(18px, 4.8vw, 21px); font-weight: 400; line-height: 1.4; }
-.flip-ipa, .row-ipa {
-  font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Lucida Sans Unicode", "Segoe UI", system-ui, sans-serif;
-  font-weight: 400;
-}
-.flip-ipa { font-size: 17px; opacity: 0.65; letter-spacing: 0.01em; }
-.row-ipa { color: var(--text-2); font-size: 13px; opacity: 0.85; }
-.flip-note { max-width: 36ch; line-height: 1.45; }
-
 /* Câu + phiên âm thẳng hàng (font monospace, cùng cỡ chữ) */
 .interlinear {
   font-family: ui-monospace, "SF Mono", Menlo, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
   text-align: left; max-width: 100%; overflow-x: auto;
 }
 .il-en, .il-ipa { white-space: pre; }
-.il-en { font-weight: 600; }
+.il-en { font-weight: 500; }
 .il-ipa { opacity: 0.6; margin-top: 2px; }
-.flip-face { padding-left: 16px; padding-right: 16px; }
+
+/* ---------- Dòng mở rộng (kiểu Google Tasks) ---------- */
+.row.open { background: var(--surface-2); border-radius: 0 16px 16px 0; margin: 4px 0; }
+.detail { margin-top: 12px; cursor: default; }
+.detail .interlinear { font-size: 17px; color: var(--text); }
+.detail-back { font-size: 16px; color: var(--text); }
+.detail-note { margin-top: 8px; font-size: 13px; color: var(--text-2); }
+.detail-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.detail-actions .spacer { flex: 1; }
+.chip {
+  height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--outline);
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.chip-primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.queue-note { margin: 16px 0 0; padding: 0 20px; font-size: 13px; color: var(--text-2); text-align: center; }
+.done-box { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 56px 32px; color: var(--text-2); }
+.done-box p { margin: 0 0 6px; font-size: 15px; }
+.done-box .done-title { font-size: 20px; color: var(--text); }
+.done-icon svg { width: 72px; height: 72px; color: var(--primary); margin-bottom: 12px; }
+.done-box .btn { margin-top: 20px; }

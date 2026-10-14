@@ -21,6 +21,7 @@ const P = {
   cloudDone: 'M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17 15.18 9l1.41 1.41L10 17z',
   cloudOff: 'M19.35 10.04A7.49 7.49 0 0 0 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46A5.497 5.497 0 0 1 17.5 11.5v.5H19c1.66 0 3 1.34 3 3 0 1.13-.64 2.11-1.56 2.62l1.45 1.45C23.16 18.16 24 16.68 24 15c0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.75 2.74C2.56 8.15 0 10.77 0 14c0 3.31 2.69 6 6 6h11.73l2 2L21 20.73 4.27 4 3 5.27zM7.73 10l8 8H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h1.73z',
   open: 'M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z',
+  shuffle: 'M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z',
   done: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
 };
 export function icon(name, cls = '') {
@@ -218,8 +219,9 @@ export async function newDeck() {
 }
 
 // ---------- Danh sách thẻ ----------
-let knownOpen = store.prefs.get('knownOpen') === '1';
-let flashId = null;
+// Dòng thu gọn chỉ hiện mặt trước; bấm vào thì mở rộng (kiểu Google Tasks) để xem mặt sau + IPA
+// và chọn "Chưa thuộc" (vào hàng chờ) hoặc "Đã thuộc" (xóa thẻ).
+let openId = null;
 
 const EMPTY_SVG = `<svg viewBox="0 0 180 150" aria-hidden="true">
   <rect x="38" y="30" width="96" height="70" rx="12" fill="none" stroke="currentColor" stroke-opacity=".25" stroke-width="3" transform="rotate(-10 86 65)"/>
@@ -237,8 +239,8 @@ function renderList() {
   $('#deck-title').textContent = deck?.name || 'Flashcard';
   document.title = deck ? `${deck.name} · Flashcard` : 'Flashcard';
   $('#fab').hidden = !deck;
-  $('#btn-study').hidden = !deck;
   if (!deck) {
+    $('#btn-shuffle').hidden = true;
     main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG },
       h('p', {}, 'Chưa có bộ thẻ nào'),
       h('button', { type: 'button', class: 'btn btn-filled ripple', html: icon('plus'), onclick: newDeck }, 'Tạo bộ thẻ'),
@@ -246,9 +248,9 @@ function renderList() {
     return;
   }
 
-  const todo = deck.cards.filter((c) => !c.known);
-  const known = deck.cards.filter((c) => c.known);
-  $('#btn-study').disabled = !todo.length;
+  const visible = deck.cards.filter((c) => !c.queued);
+  const queued = deck.cards.length - visible.length;
+  $('#btn-shuffle').hidden = visible.length < 2;
 
   if (!deck.cards.length) {
     main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG }, h('p', {}, 'Chưa có thẻ nào — bấm + để thêm')));
@@ -256,61 +258,99 @@ function renderList() {
   }
 
   const parts = [];
-  if (todo.length) parts.push(h('ul', { class: 'card-list' }, todo.map((c) => cardRow(deck, c))));
-  else parts.push(h('p', { class: 'all-known' }, 'Bạn đã thuộc hết bộ này 🎉'));
-
-  if (known.length) {
-    parts.push(h('button', {
-      type: 'button', class: 'known-head ripple', 'aria-expanded': String(knownOpen),
-      onclick: () => { knownOpen = !knownOpen; store.prefs.set('knownOpen', knownOpen ? '1' : '0'); renderList(); },
-    }, h('span', { style: 'flex:1' }, `Đã thuộc (${known.length})`), h('span', { html: icon('expand'), style: 'display:flex' })));
-    if (knownOpen) parts.push(h('ul', { class: 'card-list' }, known.map((c) => cardRow(deck, c))));
+  if (visible.length) {
+    parts.push(h('ul', { class: 'card-list' }, visible.map((c) => cardRow(deck, c))));
+    if (queued) parts.push(h('p', { class: 'queue-note' }, `${queued} thẻ chưa thuộc trong hàng chờ`));
+  } else {
+    parts.push(h('div', { class: 'done-box' },
+      h('div', { class: 'done-icon', html: icon('done') }),
+      h('p', { class: 'done-title' }, 'Hết lượt rồi!'),
+      h('p', {}, `Còn ${queued} thẻ chưa thuộc trong hàng chờ.`),
+      h('button', {
+        type: 'button', class: 'btn btn-filled ripple', html: icon('refresh'),
+        onclick: () => { openId = null; store.reloadQueue(deck.id); },
+      }, `Tải lại ${queued} thẻ chưa thuộc`),
+    ));
   }
   main.replaceChildren(...parts);
-  flashId = null;
+  main.querySelectorAll('.interlinear').forEach(fitInterlinear);
 }
 
-function textWithIPA(cls, text) {
+// Câu ở trên, IPA ngay dưới, cùng font monospace để từng từ thẳng hàng; mỗi thứ đúng 1 dòng
+function interlinear(text) {
   const [main, ipa] = splitIPA(text);
-  return h('div', { class: cls }, main, ipa && h('span', { class: 'row-ipa' }, ' ' + ipa));
+  if (!ipa) return h('div', { class: 'detail-back' }, main);
+  return h('div', { class: 'interlinear' },
+    h('div', { class: 'il-en' }, main),
+    h('div', { class: 'il-ipa' }, ipa.replace(/^[/[]|[/\]]$/g, '')));
+}
+const IL_SIZE = 17;
+function fitInterlinear(el) {
+  el.style.fontSize = IL_SIZE + 'px';
+  const avail = el.parentElement.clientWidth;
+  if (el.scrollWidth > avail) el.style.fontSize = `${Math.max(11, Math.floor((IL_SIZE * avail / el.scrollWidth) * 10) / 10)}px`;
 }
 
 function cardRow(deck, card) {
+  const open = card.id === openId;
+  const act = (fn) => (e) => { e.stopPropagation(); openId = null; fn(); };
   const row = h('div', {
-    class: 'row' + (card.known ? ' known' : '') + (card.id === flashId ? ' pop' : ''),
-    role: 'button', tabindex: '0',
-    'aria-label': `${card.front} — ${card.back}`,
+    class: 'row' + (open ? ' open' : ''),
+    role: 'button', tabindex: '0', 'aria-expanded': String(open),
   },
   h('button', {
-    type: 'button', class: 'check ripple',
-    'aria-label': card.known ? 'Bỏ đánh dấu đã thuộc' : 'Đánh dấu đã thuộc',
+    type: 'button', class: 'check ripple', 'aria-label': 'Đã thuộc',
     html: `<span class="circle">${icon('check')}</span>`,
-    onclick: (e) => {
-      e.stopPropagation();
-      flashId = card.id;
-      store.updateCard(deck.id, card.id, { known: !card.known });
-      snackbar(card.known ? 'Đã đánh dấu thuộc' : 'Đã chuyển về chưa thuộc', {
-        action: 'Hoàn tác', onAction: () => store.updateCard(deck.id, card.id, { known: !card.known }),
-      });
-    },
+    onclick: act(() => markKnown(deck, card)),
   }),
   h('div', { class: 'row-text' },
-    textWithIPA('row-front', card.front),
-    card.back && textWithIPA('row-back', card.back),
-    card.note && h('div', { class: 'row-note', html: icon('note') }, h('span', {}, card.note)),
+    h('div', { class: 'row-front' }, card.front),
+    open && h('div', { class: 'detail', onclick: (e) => e.stopPropagation() },
+      card.back && interlinear(card.back),
+      card.note && h('div', { class: 'detail-note' }, card.note),
+      h('div', { class: 'detail-actions' },
+        h('button', { type: 'button', class: 'chip ripple', onclick: act(() => markQueued(deck, card)) }, 'Chưa thuộc'),
+        h('button', { type: 'button', class: 'chip chip-primary ripple', onclick: act(() => markKnown(deck, card)) }, 'Đã thuộc'),
+        h('span', { class: 'spacer' }),
+        h('button', {
+          type: 'button', class: 'icon-btn ripple', 'aria-label': 'Sửa thẻ', html: icon('edit'),
+          onclick: (e) => { e.stopPropagation(); openEditSheet(deck, card); },
+        }),
+      ),
+    ),
   ));
-  row.addEventListener('click', () => { if (!row.dataset.swiped) openEditSheet(deck, card); });
-  row.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === row) openEditSheet(deck, card); });
+  const toggle = () => { openId = open ? null : card.id; renderList(); };
+  row.addEventListener('click', () => { if (!row.dataset.swiped) toggle(); });
+  row.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === row) toggle(); });
 
   const wrap = h('li', { class: 'row-wrap' }, h('div', { class: 'row-bg', html: icon('delete') }), row);
   attachSwipe(wrap, row, () => removeCard(deck, card));
   return wrap;
 }
 
+function markKnown(deck, card) {
+  const res = store.deleteCard(deck.id, card.id);
+  if (!res) return;
+  snackbar('Đã thuộc — đã xóa thẻ', { action: 'Hoàn tác', onAction: () => store.restoreCard(deck.id, res.card, res.index) });
+}
+
+function markQueued(deck, card) {
+  store.setQueued(deck.id, card.id, true);
+  snackbar('Đã chuyển vào hàng chờ', { action: 'Hoàn tác', onAction: () => store.setQueued(deck.id, card.id, false) });
+}
+
 function removeCard(deck, card) {
   const res = store.deleteCard(deck.id, card.id);
   if (!res) return;
   snackbar('Đã xóa', { action: 'Hoàn tác', onAction: () => store.restoreCard(deck.id, res.card, res.index) });
+}
+
+function shuffle() {
+  const deck = store.currentDeck();
+  if (!deck) return;
+  openId = null;
+  const before = store.shuffleDeck(deck.id);
+  snackbar('Đã xáo trộn', { action: 'Hoàn tác', onAction: () => store.setOrder(deck.id, before) });
 }
 
 // Vuốt sang trái để xóa
@@ -524,10 +564,11 @@ async function deleteAll() {
   snackbar(`Đã xóa ${removed.length} bộ thẻ`, { action: 'Hoàn tác', onAction: () => store.restoreDecks(removed), duration: 8000 });
 }
 
-export function initList({ onStudy }) {
+export function initList() {
   $('#fab').addEventListener('click', () => openAddSheet());
   $('#btn-menu').addEventListener('click', (e) => openDeckMenu(e.currentTarget));
-  $('#btn-study').addEventListener('click', onStudy);
+  $('#btn-shuffle').addEventListener('click', shuffle);
+  window.addEventListener('resize', () => document.querySelectorAll('#list .interlinear').forEach(fitInterlinear));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeMenu(); closeSheet(); }
   });

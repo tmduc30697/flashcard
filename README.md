@@ -75,10 +75,13 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 
 - **Tab trên cùng**: mỗi tab là một bộ thẻ; tab cuối "+ Bộ mới" để tạo bộ.
 - **Menu ⋮**: đổi tên / xóa bộ hiện tại, nhập file JSON, xóa tất cả bộ, đồng bộ Gist, cài app.
-- **Vòng tròn bên trái**: đánh dấu "Đã thuộc" — thẻ chuyển xuống mục *Đã thuộc (n)* ở cuối.
-- **Bấm vào thẻ**: sửa / xóa. **Vuốt sang trái**: xóa nhanh (có Hoàn tác).
+- **Danh sách** chỉ hiện mặt trước. **Bấm vào một dòng** để mở rộng: hiện mặt sau (câu tiếng Anh, IPA thẳng hàng ngay dưới), ghi chú và 2 nút:
+  - **Đã thuộc** → xóa thẻ (có Hoàn tác). Bấm vòng tròn bên trái cũng vậy.
+  - **Chưa thuộc** → thẻ vào **hàng chờ** (ẩn khỏi danh sách).
+- Hết thẻ trong danh sách → bấm **Tải lại n thẻ chưa thuộc** để đưa hàng chờ trở lại.
+- **Nút xáo trộn** (thanh trên cùng): đổi thứ tự ngẫu nhiên các thẻ (có Hoàn tác).
+- **Nút bút chì** trong dòng mở rộng: sửa thẻ. **Vuốt sang trái**: xóa nhanh (có Hoàn tác).
 - **Nút +**: thêm thẻ, hoặc chuyển sang **Thêm nhiều** để dán cả danh sách.
-- **Học**: học các thẻ chưa thuộc theo thứ tự ngẫu nhiên; chạm để lật; nút ⇄ để đảo chiều (hiện mặt sau trước). Trên máy tính có thể dùng phím ← (chưa thuộc) và → (đã thuộc).
 
 ## Đồng bộ giữa các máy (GitHub Gist)
 
@@ -94,7 +97,7 @@ Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`
 
 **Cách hoạt động:**
 - Mở app / quay lại app → tải dữ liệu mới nhất từ gist.
-- Sửa thẻ, tick đã thuộc… → khoảng 2–3 giây sau tự đẩy lên.
+- Sửa thẻ, Đã thuộc / Chưa thuộc… → khoảng 2–3 giây sau tự đẩy lên.
 - Offline vẫn dùng bình thường; có mạng lại thì tự đồng bộ.
 - Gộp theo **từng thẻ**: sửa trên 2 máy khác nhau thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
 - Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái; bấm vào để đồng bộ ngay. Đỏ = lỗi (thường do token hết hạn → kết nối lại).
@@ -131,10 +134,10 @@ Menu ⋮ → **Nhập từ file JSON**. Định dạng tối thiểu:
 }
 ```
 
-- Mỗi thẻ cần `front` và `back`; `note` tuỳ chọn. App tự cấp id, thời gian; mọi thẻ nhập vào là chưa thuộc.
+- Mỗi thẻ cần `front` và `back`; `note` tuỳ chọn. App tự cấp id, thời gian; mọi thẻ nhập vào đều hiện trong danh sách.
 - Chấp nhận: object có `decks`, một mảng các bộ, hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
 - Bộ nhập vào luôn được **thêm mới**, không ghi đè bộ đang có (trùng tên sẽ thành "Tên (2)").
-- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tách ra: khi học, câu nằm 1 dòng, phiên âm nằm ngay dưới, cùng font monospace nên từng từ thẳng hàng.
+- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tách ra: khi mở rộng một dòng, câu nằm 1 dòng, phiên âm nằm ngay dưới, cùng font monospace nên từng từ thẳng hàng.
 
 ## Cấu trúc thư mục
 
@@ -146,7 +149,7 @@ css/style.css
 js/app.js           Khởi động, điều hướng, đăng ký SW, banner cài đặt/cập nhật
 js/store.js         localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu đồng bộ
 js/ui-list.js       Tab bộ thẻ, danh sách thẻ, bottom sheet, snackbar
-js/ui-study.js      Chế độ học
+js/ipa.js           Tách phiên âm IPA
 js/sync.js          Đồng bộ với GitHub Gist
 icons/              Icon app (SVG gốc + PNG)
 scripts/            gen-icons.py, bump-version.sh

@@ -23,9 +23,8 @@
   <div id="screen-list" class="screen">
     <header class="topbar">
       <h1 id="deck-title" class="topbar-title">Flashcard</h1>
-      <button id="btn-study" class="btn-tonal ripple" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.8-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg>
-        Học
+      <button id="btn-shuffle" class="icon-btn ripple" type="button" aria-label="Xáo trộn" title="Xáo trộn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
       </button>
       <button id="btn-sync" class="icon-btn ripple" type="button" aria-label="Đồng bộ" hidden></button>
       <button id="btn-menu" class="icon-btn ripple" type="button" aria-label="Menu" aria-haspopup="menu">
@@ -41,20 +40,6 @@
     </button>
   </div>
 
-  <!-- Màn hình học -->
-  <div id="screen-study" class="screen study" hidden>
-    <header class="topbar">
-      <button id="study-close" class="icon-btn ripple" type="button" aria-label="Đóng">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-      <h1 id="study-title" class="topbar-title">Học</h1>
-      <button id="study-reverse" class="icon-btn ripple" type="button" aria-label="Đảo chiều" aria-pressed="false" title="Đảo chiều (hiện mặt sau trước)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
-      </button>
-    </header>
-    <div class="study-progress"><div id="study-bar" class="study-bar"></div></div>
-    <div id="study-body" class="study-body"></div>
-  </div>
 
   <!-- Lớp phủ dùng chung -->
   <div id="scrim" class="scrim" hidden></div>

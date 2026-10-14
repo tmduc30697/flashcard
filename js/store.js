@@ -39,7 +39,8 @@ function normCard(c) {
     front,
     back,
     note: String(c.note ?? '').trim(),
-    known: !!c.known,
+    queued: !!c.queued, // "Chưa thuộc" → nằm trong hàng chờ, ẩn khỏi danh sách
+    queuedAt: Number(c.queuedAt) || 0,
     createdAt,
     updatedAt: Number(c.updatedAt) || createdAt,
   };
@@ -88,7 +89,7 @@ function sampleDeck() {
   return {
     ...newDeck('IELTS – Environment'),
     cards: words.map(([front, back, note], i) => ({
-      id: uid() + i, front, back, note, known: false, createdAt: now + i, updatedAt: now + i,
+      id: uid() + i, front, back, note, queued: false, queuedAt: 0, createdAt: now + i, updatedAt: now + i,
     })),
   };
 }
@@ -195,7 +196,7 @@ export function addCards(deckId, items) {
   if (!d) return [];
   const now = Date.now();
   const added = items
-    .map((it, i) => normCard({ ...it, id: uid() + i, known: false, createdAt: now + i, updatedAt: now + i }))
+    .map((it, i) => normCard({ ...it, id: uid() + i, queued: false, createdAt: now + i, updatedAt: now + i }))
     .filter(Boolean);
   d.cards.push(...added);
   save();
@@ -218,6 +219,44 @@ export function deleteCard(deckId, cardId) {
   state.deleted[cardId] = Date.now();
   save();
   return { card, index: i };
+}
+
+// Đưa thẻ vào hàng chờ ("Chưa thuộc") hoặc lấy ra
+export function setQueued(deckId, cardId, queued) {
+  updateCard(deckId, cardId, { queued, queuedAt: queued ? Date.now() : 0 });
+}
+
+// Đưa toàn bộ hàng chờ về cuối danh sách, theo thứ tự đã xếp vào hàng chờ
+export function reloadQueue(deckId) {
+  const d = getDeck(deckId);
+  if (!d) return 0;
+  const queued = d.cards.filter((c) => c.queued).sort((a, b) => a.queuedAt - b.queuedAt);
+  const now = Date.now();
+  d.cards = d.cards.filter((c) => !c.queued).concat(queued);
+  for (const c of queued) Object.assign(c, { queued: false, queuedAt: 0, updatedAt: now });
+  save();
+  return queued.length;
+}
+
+// Xáo trộn thứ tự thẻ; trả về thứ tự cũ để hoàn tác
+export function shuffleDeck(deckId) {
+  const d = getDeck(deckId);
+  if (!d) return null;
+  const before = d.cards.map((c) => c.id);
+  for (let i = d.cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [d.cards[i], d.cards[j]] = [d.cards[j], d.cards[i]];
+  }
+  save();
+  return before;
+}
+
+export function setOrder(deckId, ids) {
+  const d = getDeck(deckId);
+  if (!d) return;
+  const pos = new Map(ids.map((id, i) => [id, i]));
+  d.cards.sort((a, b) => (pos.get(a.id) ?? Infinity) - (pos.get(b.id) ?? Infinity));
+  save();
 }
 
 export function restoreCard(deckId, card, index) {

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const CACHE_NAME = 'flashcard-' + CACHE_VERSION;
 
 // Mọi file tĩnh của app (đường dẫn tương đối so với sw.js)
@@ -10,7 +10,6 @@ const PRECACHE = [
   './js/app.js',
   './js/store.js',
   './js/ui-list.js',
-  './js/ui-study.js',
   './js/sync.js',
   './js/ipa.js',
   './icons/icon.svg',
