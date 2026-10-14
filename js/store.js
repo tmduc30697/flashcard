@@ -1,4 +1,4 @@
-// Lưu trữ dữ liệu: localStorage, xuất/nhập JSON, dữ liệu mẫu, gộp dữ liệu khi đồng bộ.
+// Lưu trữ dữ liệu: localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu khi đồng bộ.
 
 const KEY = 'flashcard:data';
 const FORMAT = 'flashcard-pwa';
