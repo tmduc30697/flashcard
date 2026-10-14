@@ -258,7 +258,7 @@ function renderList() {
 
   const parts = [];
   if (visible.length) {
-    parts.push(h('ul', { class: 'card-list' }, visible.map((c, i) => cardRow(deck, c, i + 1))));
+    parts.push(h('ul', { class: 'card-list' }, visible.map((c) => cardRow(deck, c))));
     if (queued) parts.push(h('p', { class: 'queue-note' }, `${queued} thẻ chưa thuộc trong hàng chờ`));
   } else {
     parts.push(h('div', { class: 'done-box' },
@@ -290,14 +290,13 @@ function fitInterlinear(el) {
   if (el.scrollWidth > avail) el.style.fontSize = `${Math.max(11, Math.floor((IL_SIZE * avail / el.scrollWidth) * 10) / 10)}px`;
 }
 
-function cardRow(deck, card, num) {
+function cardRow(deck, card) {
   const open = card.id === openId;
   const act = (fn) => (e) => { e.stopPropagation(); openId = null; fn(); };
   const row = h('div', {
     class: 'row' + (open ? ' open' : ''),
     role: 'button', tabindex: '0', 'aria-expanded': String(open),
   },
-  h('span', { class: 'row-num', 'aria-hidden': 'true' }, num),
   h('div', { class: 'row-text' },
     h('div', { class: 'row-front' }, card.front),
     open && h('div', { class: 'detail', onclick: (e) => e.stopPropagation() },

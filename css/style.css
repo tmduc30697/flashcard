@@ -152,7 +152,7 @@ body { overflow-x: hidden; }
 
 .row {
   position: relative; display: flex; align-items: flex-start; gap: 4px;
-  padding: 6px 16px 6px 8px; min-height: 56px;
+  padding: 6px 16px 6px 20px; min-height: 56px;
   background: var(--bg); cursor: pointer;
 }
 .row-text { flex: 1; min-width: 0; padding: 12px 0; }
@@ -317,15 +317,11 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .il-ipa { opacity: 0.6; margin-top: 2px; }
 
 /* ---------- Dòng mở rộng (kiểu Google Tasks) ---------- */
-.row.open { background: var(--surface-2); border-radius: 16px; margin: 6px 8px; padding-left: 0; }
+.row.open { background: var(--surface-2); border-radius: 16px; margin: 6px 8px; padding-left: 12px; }
 
-/* ---------- Phân biệt từng dòng: số thứ tự + đường kẻ mảnh ---------- */
-.row-num {
-  flex: none; width: 36px; padding-top: 14px; text-align: right; margin-right: 10px;
-  font-size: 13px; color: var(--text-2); opacity: 0.75; font-variant-numeric: tabular-nums;
-}
+/* ---------- Phân biệt từng dòng: đường kẻ mảnh ---------- */
 .card-list > li + li > .row::before {
-  content: ""; position: absolute; top: 0; left: 54px; right: 16px;
+  content: ""; position: absolute; top: 0; left: 20px; right: 16px;
   height: 1px; background: var(--row-divider);
 }
 /* Dòng đang mở là một khối riêng → bỏ đường kẻ của nó và của dòng ngay sau */
