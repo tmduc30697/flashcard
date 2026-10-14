@@ -395,3 +395,13 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .flip-ipa { font-size: 17px; opacity: 0.65; letter-spacing: 0.01em; }
 .row-ipa { color: var(--text-2); font-size: 13px; opacity: 0.85; }
 .flip-note { max-width: 36ch; line-height: 1.45; }
+
+/* Câu + phiên âm thẳng hàng (font monospace, cùng cỡ chữ) */
+.interlinear {
+  font-family: ui-monospace, "SF Mono", Menlo, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  text-align: left; max-width: 100%; overflow-x: auto;
+}
+.il-en, .il-ipa { white-space: pre; }
+.il-en { font-weight: 600; }
+.il-ipa { opacity: 0.6; margin-top: 2px; }
+.flip-face { padding-left: 16px; padding-right: 16px; }

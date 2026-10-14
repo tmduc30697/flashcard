@@ -1,6 +1,7 @@
 // Chế độ học: mỗi lần một thẻ, chạm để lật, đánh dấu Đã thuộc / Chưa thuộc.
 import * as store from './store.js';
-import { h, icon, snackbar, splitIPA } from './ui-list.js';
+import { h, icon, snackbar } from './ui-list.js';
+import { splitIPA } from './ipa.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -48,8 +49,27 @@ function currentCard() {
 // Nội dung một mặt thẻ: chữ chính (cỡ chữ theo độ dài) + dòng phiên âm riêng nếu có
 function face(text) {
   const [main, ipa] = splitIPA(text);
+  if (ipa) return [interlinear(main, ipa)];
   const size = main.length > 60 ? ' long' : main.length > 24 ? ' medium' : '';
-  return [h('div', { class: 'flip-main' + size }, main), ipa && h('div', { class: 'flip-ipa' }, ipa)];
+  return [h('div', { class: 'flip-main' + size }, main)];
+}
+
+// Câu ở trên, phiên âm ngay dưới, mỗi thứ đúng 1 dòng; cùng font monospace nên các từ thẳng hàng.
+// Cỡ chữ tự thu nhỏ cho vừa bề rộng thẻ (câu quá dài thì cuộn ngang).
+function interlinear(main, ipa) {
+  ipa = ipa.replace(/^[/[]|[/\]]$/g, '');
+  const el = h('div', { class: 'interlinear', style: 'font-size:26px' },
+    h('div', { class: 'il-en' }, main),
+    h('div', { class: 'il-ipa' }, ipa));
+  // Đo sau khi đã gắn vào thẻ: thu nhỏ chữ cho vừa bề rộng mặt thẻ
+  requestAnimationFrame(() => {
+    const face = el.parentElement;
+    if (!face) return;
+    const cs = getComputedStyle(face);
+    const avail = face.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (el.scrollWidth > avail) el.style.fontSize = `${Math.max(12, Math.floor(26 * avail / el.scrollWidth * 10) / 10)}px`;
+  });
+  return el;
 }
 
 function render() {

@@ -134,7 +134,7 @@ Menu ⋮ → **Nhập từ file JSON**. Định dạng tối thiểu:
 - Mỗi thẻ cần `front` và `back`; `note` tuỳ chọn. App tự cấp id, thời gian; mọi thẻ nhập vào là chưa thuộc.
 - Chấp nhận: object có `decks`, một mảng các bộ, hoặc một bộ đơn lẻ `{ "name": "...", "cards": [...] }`.
 - Bộ nhập vào luôn được **thêm mới**, không ghi đè bộ đang có (trùng tên sẽ thành "Tên (2)").
-- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tự tách ra dòng riêng, chữ nhỏ hơn.
+- Phiên âm IPA đặt ở cuối mặt trước/mặt sau (`word /wɜːd/`, hoặc sau câu: `It's lame. ɪts 'leɪm`) sẽ được tách ra: khi học, câu nằm 1 dòng, phiên âm nằm ngay dưới, cùng font monospace nên từng từ thẳng hàng.
 
 ## Cấu trúc thư mục
 
