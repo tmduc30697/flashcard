@@ -16,6 +16,7 @@ const P = {
   share: 'M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6a2 2 0 0 1-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3a2 2 0 0 1 2 2z',
   refresh: 'M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
   cloud: 'M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z',
+  speak: 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',
   cloudDownload: 'M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z',
   cloudUpload: 'M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z',
   cloudDone: 'M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17 15.18 9l1.41 1.41L10 17z',
@@ -278,6 +279,27 @@ function renderList() {
   main.replaceChildren(...parts);
 }
 
+// ---------- Đọc câu tiếng Anh (giọng có sẵn của máy, chạy offline) ----------
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+function englishVoice() {
+  const voices = speechSynthesis.getVoices().filter((v) => /^en[-_]/i.test(v.lang));
+  return voices.find((v) => /^en[-_]US/i.test(v.lang) && v.localService)
+    || voices.find((v) => /^en[-_]US/i.test(v.lang))
+    || voices.find((v) => v.localService)
+    || voices[0] || null;
+}
+
+function speak(text) {
+  speechSynthesis.cancel(); // bấm lại khi đang đọc → đọc lại từ đầu
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  const voice = englishVoice();
+  if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
+}
+if (canSpeak) speechSynthesis.getVoices(); // một số trình duyệt nạp danh sách giọng chậm → gọi sớm
+
 // Câu tiếng Anh, IPA ngay dưới (cùng font, cỡ chữ với câu tiếng Việt)
 function backText(card) {
   return h('div', { class: 'detail-back' },
@@ -301,6 +323,10 @@ function cardRow(deck, card) {
         h('button', {
           type: 'button', class: 'icon-btn ripple', 'aria-label': 'Sửa thẻ', html: icon('edit'),
           onclick: (e) => { e.stopPropagation(); openEditSheet(deck, card); },
+        }),
+        canSpeak && h('button', {
+          type: 'button', class: 'icon-btn ripple', 'aria-label': 'Đọc câu tiếng Anh', title: 'Đọc câu tiếng Anh', html: icon('speak'),
+          onclick: (e) => { e.stopPropagation(); speak(card.back); },
         }),
         h('span', { class: 'spacer' }),
         // "Chưa thuộc" nằm ngoài cùng bên phải cho ngón cái tay phải bấm
