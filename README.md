@@ -5,7 +5,7 @@ App học flashcard dạng PWA, giao diện kiểu danh sách việc cần làm 
 **Link app:** https://tmduc30697.github.io/flashcard/
 
 - Vanilla HTML/CSS/JS, không framework, không bước build.
-- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy; **đăng nhập** (Google hoặc email, qua Firebase) để dữ liệu tự đồng bộ giữa điện thoại và máy tính.
+- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy; **đăng nhập Google** (qua Firebase) để dữ liệu tự đồng bộ giữa điện thoại và máy tính.
 
 ## Chạy thử trên máy
 
@@ -87,7 +87,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 
 ## Đăng nhập & đồng bộ (Firebase)
 
-Menu ⋮ → **Đăng nhập để đồng bộ** → *Tiếp tục với Google* hoặc email + mật khẩu. Mỗi tài khoản có dữ liệu riêng.
+Menu ⋮ → **Đăng nhập Google để đồng bộ**. Mỗi tài khoản có dữ liệu riêng.
 
 - Đồng bộ **tự động**: sửa trên máy này khoảng 1–2 giây sau đã có trên máy khác đang mở app.
 - Offline vẫn dùng bình thường; có mạng lại thì tự đẩy lên.
@@ -95,12 +95,11 @@ Menu ⋮ → **Đăng nhập để đồng bộ** → *Tiếp tục với Google
 - Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (bộ mẫu chưa đụng tới thì bị bỏ).
 - **Đăng xuất** xóa dữ liệu khỏi máy đó (vẫn còn trong tài khoản).
 - Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi, bấm để thử lại.
-- iPhone đã cài app lên màn hình chính: nếu *Tiếp tục với Google* không chạy, dùng email + mật khẩu.
 
 ### Tạo project Firebase (làm một lần, cho người deploy app)
 
 1. https://console.firebase.google.com → **Create a project** (tắt Google Analytics cũng được).
-2. **Build → Authentication → Get started → Sign-in method**: bật **Google** và **Email/Password**.
+2. **Build → Authentication → Get started → Sign-in method**: bật **Google**.
 3. **Authentication → Settings → Authorized domains**: thêm `tmduc30697.github.io` (`localhost` có sẵn).
 4. **Build → Firestore Database → Create database**: chọn location (vd. `asia-southeast1`), **production mode**. Tab **Rules** dán vào rồi **Publish**:
 

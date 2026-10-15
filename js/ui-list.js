@@ -422,7 +422,7 @@ function attachDeckSwipe(el) {
 }
 
 // ---------- Sheet sửa thẻ ----------
-export function field(label, el) {
+function field(label, el) {
   return h('label', { class: 'field' }, h('span', {}, label), el);
 }
 

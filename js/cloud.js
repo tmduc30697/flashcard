@@ -1,11 +1,11 @@
-// Đăng nhập (Google hoặc email) và đồng bộ dữ liệu qua Firebase Firestore.
+// Đăng nhập Google và đồng bộ dữ liệu qua Firebase Firestore.
 // Dữ liệu mỗi người: users/{uid}/decks/{deckId} = { json } (mỗi bộ thẻ một document),
 // users/{uid}/meta/state = { deleted } (thẻ/bộ đã xóa, để máy khác xóa theo).
 // Tự đồng bộ: nghe thay đổi từ máy khác (onSnapshot), gộp vào máy (store.mergeRemote),
 // và đẩy những bộ thẻ khác với trên server sau khi sửa ~1.5 giây.
 import * as store from './store.js';
 import { firebaseConfig } from './firebase-config.js';
-import { h, icon, snackbar, openSheet, closeSheet, confirmDialog, addMenuItems, field } from './ui-list.js';
+import { icon, snackbar, confirmDialog, addMenuItems } from './ui-list.js';
 
 // Tải SDK lúc chạy (dynamic import) để app vẫn mở được khi offline hoặc chưa cấu hình Firebase
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
@@ -210,84 +210,28 @@ async function logout() {
 }
 
 const AUTH_ERRORS = {
-  'auth/invalid-email': 'Email không hợp lệ.',
-  'auth/invalid-credential': 'Sai email hoặc mật khẩu.',
-  'auth/wrong-password': 'Sai email hoặc mật khẩu.',
-  'auth/user-not-found': 'Chưa có tài khoản với email này — bấm "Tạo tài khoản".',
-  'auth/email-already-in-use': 'Email này đã có tài khoản — bấm "Đăng nhập".',
-  'auth/weak-password': 'Mật khẩu cần ít nhất 6 ký tự.',
-  'auth/missing-password': 'Nhập mật khẩu.',
-  'auth/too-many-requests': 'Thử sai quá nhiều lần — đợi một lúc rồi thử lại.',
-  'auth/network-request-failed': 'Không có mạng.',
-  'auth/popup-blocked': 'Trình duyệt chặn cửa sổ đăng nhập — cho phép popup hoặc dùng email.',
-  'auth/unauthorized-domain': 'Tên miền này chưa được thêm vào Firebase (Authorized domains).',
-  'auth/operation-not-allowed': 'Cách đăng nhập này chưa được bật trong Firebase.',
+  'auth/network-request-failed': 'Không có mạng',
+  'auth/popup-blocked': 'Trình duyệt chặn cửa sổ đăng nhập — cho phép popup rồi thử lại',
+  'auth/unauthorized-domain': 'Tên miền này chưa được thêm vào Firebase (Authorized domains)',
+  'auth/operation-not-allowed': 'Chưa bật đăng nhập Google trong Firebase',
+  'auth/too-many-requests': 'Thử quá nhiều lần — đợi một lúc rồi thử lại',
 };
-const authMessage = (e) => AUTH_ERRORS[e?.code] || 'Không đăng nhập được: ' + (e?.message || e);
 
-const GOOGLE_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.45a5.5 5.5 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.8z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3.01c-1.07.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.72-4.95H1.27v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.28 14.29A7.2 7.2 0 0 1 4.9 12c0-.8.14-1.57.38-2.29v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.39l4.01-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77z"/></svg>`;
-
-export function openLoginSheet() {
-  const email = h('input', { type: 'email', autocomplete: 'email', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'next' });
-  const pass = h('input', { type: 'password', autocomplete: 'current-password', enterkeyhint: 'go' });
-  const err = h('p', { class: 'hint error', hidden: true });
-  const buttons = [];
-  const run = async (fn, okMsg) => {
-    err.hidden = true;
-    buttons.forEach((b) => { b.disabled = true; });
-    try {
-      // SDK đã tải sẵn thì gọi ngay trong lượt bấm, để Safari không chặn popup đăng nhập Google
-      const { auth, A } = fb || await loadSdk();
-      const cred = await fn(auth, A);
-      closeSheet();
-      snackbar(okMsg || `Đã đăng nhập ${cred?.user?.email || ''} — dữ liệu sẽ tự đồng bộ`);
-    } catch (e) {
-      if (e?.code !== 'auth/popup-closed-by-user' && e?.code !== 'auth/cancelled-popup-request') {
-        err.textContent = authMessage(e);
-        err.hidden = false;
-      }
-    } finally {
-      buttons.forEach((b) => { b.disabled = false; });
-    }
-  };
-  const google = h('button', {
-    type: 'button', class: 'btn btn-outline btn-block ripple', html: GOOGLE_SVG,
-    onclick: () => run((auth, A) => A.signInWithPopup(auth, new A.GoogleAuthProvider())),
-  }, 'Tiếp tục với Google');
-  const signup = h('button', {
-    type: 'button', class: 'btn btn-text ripple',
-    onclick: () => run((auth, A) => A.createUserWithEmailAndPassword(auth, email.value.trim(), pass.value)),
-  }, 'Tạo tài khoản');
-  const signin = h('button', { type: 'submit', class: 'btn btn-filled ripple' }, 'Đăng nhập');
-  const forgot = h('button', {
-    type: 'button', class: 'btn btn-text ripple',
-    onclick: () => {
-      if (!email.value.trim()) { err.textContent = 'Nhập email trước rồi bấm "Quên mật khẩu".'; err.hidden = false; return; }
-      run(async (auth, A) => { await A.sendPasswordResetEmail(auth, email.value.trim()); }, 'Đã gửi email đặt lại mật khẩu');
-    },
-  }, 'Quên mật khẩu');
-  buttons.push(google, signup, signin, forgot);
-
-  openSheet(h('form', {
-    onsubmit: (e) => {
-      e.preventDefault();
-      run((auth, A) => A.signInWithEmailAndPassword(auth, email.value.trim(), pass.value));
-    },
-  },
-  h('div', { class: 'sheet-head' }, h('h2', {}, 'Đăng nhập')),
-  h('p', { class: 'sheet-text' }, 'Đăng nhập để dùng chung dữ liệu giữa điện thoại và máy tính.'),
-  google,
-  h('p', { class: 'or' }, 'hoặc dùng email'),
-  field('Email', email),
-  field('Mật khẩu', pass),
-  err,
-  h('div', { class: 'actions' }, forgot, h('span', { class: 'spacer' }), signup, signin),
-  ));
+async function login() {
+  try {
+    // SDK đã tải sẵn thì gọi ngay trong lượt bấm, để Safari không chặn popup đăng nhập
+    const { auth, A } = fb || await loadSdk();
+    const cred = await A.signInWithPopup(auth, new A.GoogleAuthProvider());
+    snackbar(`Đã đăng nhập ${cred.user.email || ''} — dữ liệu sẽ tự đồng bộ`);
+  } catch (e) {
+    if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return;
+    snackbar(AUTH_ERRORS[e?.code] || 'Không đăng nhập được: ' + (e?.message || e), { duration: 6000 });
+  }
 }
 
 function menuItems() {
   if (!firebaseConfig) return [];
-  if (!user) return ['-', { icon: 'account', text: 'Đăng nhập để đồng bộ', onClick: openLoginSheet }];
+  if (!user) return ['-', { icon: 'account', text: 'Đăng nhập Google để đồng bộ', onClick: login }];
   return [
     '-',
     { label: `${user.email || 'Tài khoản'} · ${timeLabel(Number(store.prefs.get('cloudLastSync')) || 0)}` },
