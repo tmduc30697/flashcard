@@ -109,9 +109,8 @@ function listen() {
 function applyRemote() {
   if (!decksReady || !metaReady) return;
   const decks = [...remoteDecks.values()].map((j) => { try { return JSON.parse(j); } catch { return null; } }).filter(Boolean);
-  const empty = !decks.length && remoteDeleted === '{}';
-  // Máy mới chỉ có bộ mẫu chưa đụng tới → lấy nguyên dữ liệu trên tài khoản, không trộn bộ mẫu vào
-  store.mergeRemote({ decks, deleted: JSON.parse(remoteDeleted) }, { dropLocal: store.isPristine() && !empty });
+  // Máy chưa có dữ liệu của người dùng (kể cả bộ mẫu của bản cũ) → lấy nguyên dữ liệu trên tài khoản
+  store.mergeRemote({ decks, deleted: JSON.parse(remoteDeleted) }, { dropLocal: store.isPristine() });
   push(); // đẩy phần máy này có mà server chưa có
 }
 

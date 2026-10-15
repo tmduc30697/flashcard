@@ -92,7 +92,7 @@ Phải **đăng nhập Google** mới dùng được app (màn hình đầu tiê
 - Đồng bộ **tự động**: sửa trên máy này khoảng 1–2 giây sau đã có trên máy khác đang mở app.
 - Offline vẫn dùng bình thường; có mạng lại thì tự đẩy lên.
 - Gộp theo **từng thẻ**: sửa trên 2 máy thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
-- Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (bộ mẫu chưa đụng tới thì bị bỏ).
+- Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (máy mới cài thì lấy nguyên dữ liệu trong tài khoản). Tài khoản mới bắt đầu trống — nhập file JSON để có bộ thẻ.
 - **Đăng xuất** xóa dữ liệu khỏi máy đó (vẫn còn trong tài khoản).
 - Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi, bấm để thử lại.
 
@@ -154,7 +154,7 @@ manifest.json       Thông tin cài đặt PWA
 sw.js               Service worker (cache offline, cập nhật)
 css/style.css
 js/app.js           Khởi động, điều hướng, đăng ký SW, banner cài đặt/cập nhật
-js/store.js         localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu đồng bộ
+js/store.js         localStorage, nhập JSON, gộp dữ liệu đồng bộ
 js/ui-list.js       Tab bộ thẻ, danh sách thẻ, bottom sheet, snackbar
 js/ipa.js           Tách phiên âm IPA
 js/cloud.js         Đăng nhập + đồng bộ Firebase
