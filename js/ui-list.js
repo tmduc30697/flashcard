@@ -352,7 +352,7 @@ function cardRow(deck, card) {
         }),
         h('span', { class: 'spacer' }),
         // "Chưa thuộc" nằm ngoài cùng bên phải cho ngón cái tay phải bấm
-        h('button', { type: 'button', class: 'chip chip-primary ripple', onclick: act(() => markKnown(deck, card)) }, 'Đã thuộc'),
+        h('button', { type: 'button', class: 'chip chip-primary ripple', onclick: act(() => markKnown(deck, card)) }, 'Thuộc'),
         h('button', { type: 'button', class: 'chip ripple', onclick: act(() => markQueued(deck, card)) }, 'Chưa thuộc'),
       ),
     ),

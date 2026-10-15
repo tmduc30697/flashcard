@@ -326,6 +326,10 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 .detail-note { margin-top: 6px; font-size: 12px; color: var(--text-2); }
 .detail-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 .detail-actions .spacer { flex: 1; }
+/* Màn hình hẹp: nút icon nhỏ lại, nhãn chip không xuống dòng */
+.detail-actions .icon-btn { width: 36px; height: 36px; flex-shrink: 0; }
+.detail-actions .icon-btn + .icon-btn { margin-left: -4px; }
+.detail-actions .chip { flex-shrink: 0; padding: 0 12px; white-space: nowrap; }
 .chip {
   height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--outline);
   font-size: 14px; font-weight: 500; color: var(--text);

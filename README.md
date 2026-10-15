@@ -76,7 +76,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 - **Tab trên cùng**: mỗi tab là một bộ thẻ; tab cuối "+ Bộ mới" để tạo bộ.
 - **Menu ⋮**: đổi tên / xóa bộ hiện tại, nhập file JSON, xóa tất cả bộ, đồng bộ Gist, cài app.
 - **Danh sách** chỉ hiện mặt trước. **Bấm vào một dòng** để mở rộng: hiện mặt sau (câu tiếng Anh, IPA thẳng hàng ngay dưới), ghi chú và 2 nút:
-  - **Đã thuộc** → xóa thẻ (có Hoàn tác).
+  - **Thuộc** → xóa thẻ (có Hoàn tác).
   - **Chưa thuộc** → thẻ vào **hàng chờ** (ẩn khỏi danh sách).
 - Hết thẻ trong danh sách → bấm **Tải lại n thẻ chưa thuộc** để đưa hàng chờ trở lại.
 - **Nút xáo trộn** (thanh trên cùng): đổi thứ tự ngẫu nhiên các thẻ (có Hoàn tác).
