@@ -21,6 +21,7 @@ let remoteDecks = new Map(); // deckId → json đang có trên server
 let remoteDeleted = '{}';
 let decksReady = false;
 let metaReady = false;
+let metaExists = false; // tài khoản đã từng đồng bộ (có users/{uid}/meta/state)
 let pushTimer = null;
 let pushing = null;
 let again = false;
@@ -83,7 +84,7 @@ function stopListening() {
   pushTimer = null;
   remoteDecks = new Map();
   remoteDeleted = '{}';
-  decksReady = metaReady = false;
+  decksReady = metaReady = metaExists = false;
 }
 
 function listen() {
@@ -101,6 +102,7 @@ function listen() {
   unsubs.push(F.onSnapshot(F.doc(db, 'users', user.uid, 'meta', 'state'), opts, (snap) => {
     if (!settled(snap)) return;
     remoteDeleted = canon(snap.data()?.deleted || {});
+    metaExists = snap.exists();
     metaReady = true;
     applyRemote();
   }, onError));
@@ -109,8 +111,10 @@ function listen() {
 function applyRemote() {
   if (!decksReady || !metaReady) return;
   const decks = [...remoteDecks.values()].map((j) => { try { return JSON.parse(j); } catch { return null; } }).filter(Boolean);
-  // Máy chưa có dữ liệu của người dùng (kể cả bộ mẫu của bản cũ) → lấy nguyên dữ liệu trên tài khoản
+  // Máy chưa có dữ liệu của người dùng → lấy nguyên dữ liệu trên tài khoản
   store.mergeRemote({ decks, deleted: JSON.parse(remoteDeleted) }, { dropLocal: store.isPristine() });
+  if (!metaExists && !decks.length && !store.getDecks().length) store.seedSample(); // tài khoản mới
+  store.fixOldSample();
   push(); // đẩy phần máy này có mà server chưa có
 }
 
@@ -136,7 +140,7 @@ function push() {
   }
   const removed = [...remoteDecks.keys()].filter((id) => !localIds.has(id) && deleted[id]);
   const deletedJson = canon(deleted);
-  if (!changed.length && !removed.length && deletedJson === remoteDeleted) {
+  if (!changed.length && !removed.length && deletedJson === remoteDeleted && metaExists) {
     store.prefs.set('cloudLastSync', Date.now());
     setStatus(navigator.onLine ? 'ok' : 'offline');
     return Promise.resolve();
@@ -157,12 +161,13 @@ function push() {
       };
       for (const [id, json] of changed) add((b) => b.set(F.doc(col, id), { json }));
       for (const id of removed) add((b) => b.delete(F.doc(col, id)));
-      if (deletedJson !== remoteDeleted) add((b) => b.set(F.doc(db, 'users', uid, 'meta', 'state'), { deleted }));
+      if (deletedJson !== remoteDeleted || !metaExists) add((b) => b.set(F.doc(db, 'users', uid, 'meta', 'state'), { deleted }));
       if (n) commits.push(batch.commit());
       // Ghi nhận ngay để lần đẩy sau chỉ gửi phần mới đổi
       for (const [id, json] of changed) remoteDecks.set(id, json);
       for (const id of removed) remoteDecks.delete(id);
       remoteDeleted = deletedJson;
+      metaExists = true;
       await Promise.all(commits); // offline: Firestore giữ lại, có mạng thì tự gửi
       store.prefs.set('cloudLastSync', Date.now());
       setStatus('ok');

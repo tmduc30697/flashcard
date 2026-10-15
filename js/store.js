@@ -1,4 +1,4 @@
-// Lưu trữ dữ liệu: localStorage, nhập JSON, gộp dữ liệu khi đồng bộ (Firebase).
+// Lưu trữ dữ liệu: localStorage, nhập JSON, bộ mẫu, gộp dữ liệu khi đồng bộ (Firebase).
 
 import { splitIPA } from './ipa.js';
 
@@ -7,7 +7,7 @@ const FORMAT = 'flashcard-pwa';
 const TOMBSTONE_TTL = 90 * 24 * 3600 * 1000; // nhớ thẻ/bộ đã xóa 90 ngày để máy khác cũng xóa theo
 
 // deleted: { [id]: thời điểm xóa } — dùng khi gộp với dữ liệu trên server
-// pristine: máy chưa có dữ liệu của người dùng (mới cài / vừa đăng xuất / bộ mẫu của bản cũ chưa đụng tới)
+// pristine: máy chưa có dữ liệu của người dùng (mới cài / vừa đăng xuất / bộ mẫu chưa đụng tới)
 // → khi đồng bộ lần đầu lấy nguyên dữ liệu trên tài khoản, bỏ dữ liệu trên máy
 let state = { decks: [], deleted: {}, currentDeckId: null, pristine: false };
 const listeners = new Set();
@@ -76,6 +76,56 @@ function normDeleted(obj) {
     }
   }
   return out;
+}
+
+function newDeck(name) {
+  const now = Date.now();
+  return { id: uid(), name, createdAt: now, updatedAt: now, cards: [] };
+}
+
+function sampleDeck() {
+  const words = [
+    ['Nạn phá rừng đang huỷ hoại môi trường sống của nhiều loài.', 'Deforestation is destroying the habitats of many species.', 'ˌdiːˌfɒrɪˈsteɪʃn ɪz dɪˈstrɔɪɪŋ ðə ˈhæbɪtæts əv ˈmeni ˈspiːʃiːz', 'deforestation: nạn phá rừng'],
+    ['Rạn san hô có mức đa dạng sinh học đáng kinh ngạc.', 'Coral reefs support an incredible level of biodiversity.', 'ˈkɒrəl riːfs səˈpɔːt ən ɪnˈkredəbl ˈlevl əv ˌbaɪəʊdaɪˈvɜːsəti', 'biodiversity: đa dạng sinh học'],
+    ['Đạp xe đi làm có thể giảm lượng khí thải carbon của bạn.', 'Cycling to work can reduce your carbon footprint.', 'ˈsaɪklɪŋ tə wɜːk kən rɪˈdjuːs jɔː ˈkɑːbən ˈfʊtprɪnt', 'carbon footprint: lượng khí thải carbon'],
+    ['Nhiều nước đang đầu tư mạnh vào năng lượng tái tạo.', 'Many countries are investing heavily in renewable energy.', 'ˈmeni ˈkʌntriz ə ɪnˈvestɪŋ ˈhevɪli ɪn rɪˈnjuːəbl ˈenədʒi', 'renewable energy: năng lượng tái tạo'],
+    ['Hổ là loài có nguy cơ tuyệt chủng.', 'The tiger is an endangered species.', 'ðə ˈtaɪɡə ɪz ən ɪnˈdeɪndʒəd ˈspiːʃiːz', 'endangered species: loài có nguy cơ tuyệt chủng'],
+    ['Chúng ta cần những cách sản xuất lương thực bền vững hơn.', 'We need more sustainable ways of producing food.', 'wi niːd mɔː səˈsteɪnəbl weɪz əv prəˈdjuːsɪŋ fuːd', 'sustainable: bền vững'],
+    ['Các nhà máy thải chất gây ô nhiễm ra sông.', 'Factories release pollutants into rivers.', 'ˈfæktəriz rɪˈliːs pəˈluːtənts ˈɪntə ˈrɪvəz', 'pollutant: chất gây ô nhiễm'],
+    ['Trồng cây có thể giúp giảm nhẹ biến đổi khí hậu.', 'Planting trees can help mitigate climate change.', 'ˈplɑːntɪŋ triːz kən help ˈmɪtɪɡeɪt ˈklaɪmət tʃeɪndʒ', 'mitigate: giảm nhẹ'],
+  ];
+  const now = Date.now();
+  return {
+    ...newDeck('IELTS – Environment'),
+    cards: words.map(([front, back, ipa, note], i) => ({
+      id: uid() + i, front, back, ipa, note, queued: false, queuedAt: 0, createdAt: now + i, updatedAt: now + i,
+    })),
+  };
+}
+
+// Bộ mẫu của bản đầu tiên (mặt trước là từ tiếng Anh, mặt sau là nghĩa) → thay bằng bộ mẫu đúng format.
+// Thẻ cũ được đánh dấu đã xóa để máy khác cũng xóa theo khi gộp.
+const OLD_SAMPLE = new Set(['deforestation', 'biodiversity', 'carbon footprint', 'renewable energy', 'endangered species', 'sustainable', 'pollutant', 'mitigate']);
+export function fixOldSample() {
+  let fixed = false;
+  for (const d of state.decks) {
+    if (d.name !== 'IELTS – Environment' || !d.cards.length || !d.cards.every((c) => OLD_SAMPLE.has(c.front))) continue;
+    const now = Date.now();
+    for (const c of d.cards) state.deleted[c.id] = now;
+    d.cards = sampleDeck().cards;
+    d.updatedAt = now;
+    fixed = true;
+  }
+  if (fixed) save();
+  return fixed;
+}
+
+// Tài khoản mới: thêm bộ mẫu để có cái học thử
+export function seedSample() {
+  const deck = sampleDeck();
+  state.decks.push(deck);
+  state.currentDeckId = deck.id;
+  save();
 }
 
 export function load() {

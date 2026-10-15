@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v28';
+const CACHE_VERSION = 'v29';
 const CACHE_NAME = 'flashcard-' + CACHE_VERSION;
 const LIB_CACHE = 'fclib'; // không bắt đầu bằng 'flashcard-' → không bị xóa khi lên phiên bản
 

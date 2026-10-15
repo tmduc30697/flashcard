@@ -92,7 +92,7 @@ Phải **đăng nhập Google** mới dùng được app (màn hình đầu tiê
 - Đồng bộ **tự động**: sửa trên máy này khoảng 1–2 giây sau đã có trên máy khác đang mở app.
 - Offline vẫn dùng bình thường; có mạng lại thì tự đẩy lên.
 - Gộp theo **từng thẻ**: sửa trên 2 máy thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
-- Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (máy mới cài thì lấy nguyên dữ liệu trong tài khoản). Tài khoản mới bắt đầu trống — nhập file JSON để có bộ thẻ.
+- Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (máy mới cài thì lấy nguyên dữ liệu trong tài khoản). Tài khoản mới có sẵn bộ mẫu "IELTS – Environment" để học thử.
 - **Đăng xuất** xóa dữ liệu khỏi máy đó (vẫn còn trong tài khoản).
 - Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi, bấm để thử lại.
 
