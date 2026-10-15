@@ -347,3 +347,4 @@ body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 }
 .tab[aria-selected="true"] .tab-count { background: var(--primary-container); color: var(--on-primary-container); }
 .title-count { margin-left: 8px; font-size: 16px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.icon-btn.sync-pending { color: var(--primary); }

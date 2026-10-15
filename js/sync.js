@@ -1,25 +1,25 @@
 // Đồng bộ dữ liệu với một secret gist trên GitHub (chỉ cho chính chủ, dùng token có quyền "gist").
 // Luồng: kéo gist về → gộp với dữ liệu trên máy (store.mergeRemote) → đẩy lên nếu khác.
+// Chỉ đồng bộ khi người dùng bấm nút (tránh lỗi GitHub "too many requests"); sửa trên máy chỉ đánh dấu "chưa đồng bộ".
 import * as store from './store.js';
 import { h, icon, snackbar, openSheet, closeSheet, confirmDialog, addMenuItems } from './ui-list.js';
 
 const API = 'https://api.github.com';
 const FILE = 'flashcard-data.json';
 const TOKEN_URL = 'https://github.com/settings/tokens/new?scopes=gist&description=Flashcard%20PWA';
-const PUSH_DELAY = 2500;
 
 const $ = (sel) => document.querySelector(sel);
 
 let status = 'idle'; // idle | syncing | ok | offline | error
 let running = null;
-let again = false;
-let pushTimer = null;
+let changedDuringSync = false;
 
 const cfg = {
   get token() { return store.prefs.get('gistToken'); },
   get gistId() { return store.prefs.get('gistId'); },
   get user() { return store.prefs.get('gistUser'); },
   get lastSync() { return Number(store.prefs.get('gistLastSync')) || 0; },
+  get dirty() { return store.prefs.get('gistDirty') === '1'; },
 };
 export const isConnected = () => !!(cfg.token && cfg.gistId);
 
@@ -79,6 +79,7 @@ function setStatus(s) {
   const btn = $('#btn-sync');
   if (!btn) return;
   btn.hidden = !isConnected();
+  const pending = cfg.dirty && (s === 'idle' || s === 'ok');
   const map = {
     idle: ['cloud', 'Đồng bộ'],
     syncing: ['refresh', 'Đang đồng bộ…'],
@@ -86,12 +87,13 @@ function setStatus(s) {
     offline: ['cloudOff', 'Đang offline — sẽ đồng bộ khi có mạng'],
     error: ['cloudOff', 'Lỗi đồng bộ — bấm để thử lại'],
   };
-  const [ic, label] = map[s];
+  const [ic, label] = pending ? ['cloudUpload', 'Có thay đổi chưa đồng bộ — bấm để đồng bộ'] : map[s];
   btn.innerHTML = icon(ic);
   btn.setAttribute('aria-label', label);
   btn.title = label;
   btn.classList.toggle('syncing', s === 'syncing');
   btn.classList.toggle('sync-error', s === 'error');
+  btn.classList.toggle('sync-pending', pending);
 }
 
 function timeLabel(t) {
@@ -105,31 +107,28 @@ function timeLabel(t) {
 // ---------- Đồng bộ ----------
 export function syncNow({ manual = false } = {}) {
   if (!isConnected()) return Promise.resolve();
-  clearTimeout(pushTimer);
-  pushTimer = null;
   if (!navigator.onLine) {
     setStatus('offline');
-    if (manual) snackbar('Đang offline — sẽ tự đồng bộ khi có mạng');
+    if (manual) snackbar('Đang offline — có mạng thì bấm đồng bộ lại');
     return Promise.resolve();
   }
-  if (running) { again = true; return running; }
+  if (running) return running;
+  changedDuringSync = false;
   setStatus('syncing');
   running = (async () => {
     try {
-      do {
-        again = false;
-        let { content } = await readGist(cfg.gistId);
-        let remote = null;
-        if (content) {
-          try { remote = JSON.parse(content); } catch { remote = null; }
-        }
-        // Máy mới chỉ có bộ mẫu chưa đụng tới → lấy nguyên dữ liệu trên Gist (kể cả khi Gist đã trống), không trộn bộ mẫu vào
-        const dropLocal = store.isPristine() && Array.isArray(remote?.decks);
-        if (remote) store.mergeRemote(remote, { dropLocal });
-        const next = serialize();
-        if (next !== content) await writeGist(next);
-      } while (again);
+      const { content } = await readGist(cfg.gistId);
+      let remote = null;
+      if (content) {
+        try { remote = JSON.parse(content); } catch { remote = null; }
+      }
+      // Máy mới chỉ có bộ mẫu chưa đụng tới → lấy nguyên dữ liệu trên Gist (kể cả khi Gist đã trống), không trộn bộ mẫu vào
+      const dropLocal = store.isPristine() && Array.isArray(remote?.decks);
+      if (remote) store.mergeRemote(remote, { dropLocal });
+      const next = serialize();
+      if (next !== content) await writeGist(next);
       store.prefs.set('gistLastSync', Date.now());
+      if (!changedDuringSync) store.prefs.remove('gistDirty');
       setStatus('ok');
       if (manual) snackbar('Đã đồng bộ');
     } catch (e) {
@@ -159,12 +158,6 @@ function handleError(e, manual) {
   }
 }
 
-function schedulePush() {
-  if (!isConnected()) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => syncNow(), PUSH_DELAY);
-}
-
 async function createGist(token) {
   const gist = await api('/gists', {
     method: 'POST', token,
@@ -190,7 +183,7 @@ async function connect(token) {
 }
 
 function disconnect() {
-  ['gistToken', 'gistId', 'gistUser', 'gistLastSync'].forEach((k) => store.prefs.remove(k));
+  ['gistToken', 'gistId', 'gistUser', 'gistLastSync', 'gistDirty'].forEach((k) => store.prefs.remove(k));
   setStatus('idle');
 }
 
@@ -214,7 +207,7 @@ export function openConnectSheet() {
       try {
         const user = await connect(input.value.trim());
         closeSheet();
-        snackbar(`Đã kết nối GitHub @${user} — dữ liệu sẽ tự đồng bộ`);
+        snackbar(`Đã kết nối GitHub @${user} — bấm nút đám mây để đồng bộ`);
       } catch (e2) {
         disconnect();
         err.textContent = e2 instanceof HttpError && e2.status === 401
@@ -249,7 +242,7 @@ function menuItems() {
   }
   return [
     '-',
-    { label: `Gist @${cfg.user || '?'} · ${timeLabel(cfg.lastSync)}` },
+    { label: `Gist @${cfg.user || '?'} · ${timeLabel(cfg.lastSync)}${cfg.dirty ? ' · có thay đổi chưa đồng bộ' : ''}` },
     { icon: 'refresh', text: 'Đồng bộ ngay', onClick: () => syncNow({ manual: true }) },
     { icon: 'open', text: 'Mở Gist trên GitHub', onClick: () => window.open(`https://gist.github.com/${cfg.gistId}`, '_blank', 'noopener') },
     { icon: 'cloudOff', text: 'Ngắt đồng bộ', onClick: async () => {
@@ -262,13 +255,14 @@ function menuItems() {
 export function initSync() {
   addMenuItems(menuItems);
   $('#btn-sync').addEventListener('click', () => syncNow({ manual: true }));
-  store.subscribe((source) => { if (source === 'local') schedulePush(); });
-  window.addEventListener('online', () => syncNow());
-  window.addEventListener('offline', () => isConnected() && setStatus('offline'));
-  document.addEventListener('visibilitychange', () => {
-    // Quay lại app → kéo dữ liệu mới; rời app khi còn thay đổi chưa đẩy → đẩy ngay
-    if (document.visibilityState === 'visible' || pushTimer) syncNow();
+  // Sửa trên máy → chỉ đánh dấu "chưa đồng bộ", không tự gọi GitHub
+  store.subscribe((source) => {
+    if (source !== 'local' || !isConnected()) return;
+    store.prefs.set('gistDirty', '1');
+    if (running) changedDuringSync = true;
+    else setStatus(status);
   });
+  window.addEventListener('online', () => isConnected() && status === 'offline' && setStatus('idle'));
+  window.addEventListener('offline', () => isConnected() && setStatus('offline'));
   setStatus('idle');
-  syncNow();
 }
