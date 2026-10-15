@@ -39,23 +39,17 @@ async function loadSdk() {
   return fb;
 }
 
-// ---------- Trạng thái (nút đám mây trên thanh trên cùng) ----------
+// ---------- Trạng thái (nút đám mây: chỉ hiện khi offline hoặc lỗi) ----------
 function setStatus(s) {
   status = s;
   const btn = $('#btn-cloud');
   if (!btn) return;
-  btn.hidden = !user;
-  const [ic, label] = {
-    idle: ['cloud', 'Đồng bộ'],
-    syncing: ['refresh', 'Đang đồng bộ…'],
-    ok: ['cloudDone', 'Đã đồng bộ'],
-    offline: ['cloudOff', 'Đang offline — có mạng sẽ tự đồng bộ'],
-    error: ['cloudOff', 'Lỗi đồng bộ — bấm để thử lại'],
-  }[s];
-  btn.innerHTML = icon(ic);
+  btn.hidden = !user || (s !== 'offline' && s !== 'error');
+  if (btn.hidden) return;
+  const label = s === 'offline' ? 'Đang offline — có mạng sẽ tự đồng bộ' : 'Lỗi đồng bộ — bấm để thử lại';
+  btn.innerHTML = icon('cloudOff');
   btn.setAttribute('aria-label', label);
   btn.title = label;
-  btn.classList.toggle('syncing', s === 'syncing');
   btn.classList.toggle('sync-error', s === 'error');
 }
 
@@ -273,7 +267,7 @@ export function initCloud() {
   if (!firebaseConfig) return;
 
   $('#btn-cloud').addEventListener('click', () => {
-    if (status === 'ok') snackbar(timeLabel(Number(store.prefs.get('cloudLastSync')) || 0).replace(/^./, (c) => c.toUpperCase()));
+    if (status === 'offline') snackbar('Đang offline — thay đổi được lưu trên máy, có mạng sẽ tự đồng bộ');
     else if (status === 'error') { stopListening(); listen(); }
   });
   store.subscribe((source) => { if (source === 'local' && user) schedulePush(); });

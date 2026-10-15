@@ -94,7 +94,7 @@ Phải **đăng nhập Google** mới dùng được app (màn hình đầu tiê
 - Gộp theo **từng thẻ**: sửa trên 2 máy thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
 - Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (máy mới cài thì lấy nguyên dữ liệu trong tài khoản). Tài khoản mới có sẵn bộ mẫu "IELTS – Environment" để học thử.
 - **Đăng xuất** xóa dữ liệu khỏi máy đó (vẫn còn trong tài khoản).
-- Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi, bấm để thử lại.
+- Bình thường không có biểu tượng gì. Đám mây gạch chéo hiện trên thanh trên cùng khi đang offline (xám) hoặc lỗi đồng bộ (đỏ, bấm để thử lại).
 
 ### Tạo project Firebase (làm một lần, cho người deploy app)
 

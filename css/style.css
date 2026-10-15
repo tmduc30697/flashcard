@@ -275,7 +275,6 @@ body { overflow-x: hidden; }
 body.no-scroll .snackbar { bottom: auto; top: calc(12px + var(--sat)); }
 
 /* ---------- Đồng bộ ---------- */
-.icon-btn.syncing svg { animation: spin 1s linear infinite; color: var(--primary); }
 .icon-btn.sync-error { color: var(--danger); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .sheet-text { margin: 0 4px 12px; font-size: 14px; color: var(--text-2); }
