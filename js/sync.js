@@ -1,6 +1,7 @@
 // Đồng bộ dữ liệu với một secret gist trên GitHub (chỉ cho chính chủ, dùng token có quyền "gist").
-// Luồng: kéo gist về → gộp với dữ liệu trên máy (store.mergeRemote) → đẩy lên nếu khác.
-// Chỉ đồng bộ khi người dùng bấm nút (tránh lỗi GitHub "too many requests"); sửa trên máy chỉ đánh dấu "chưa đồng bộ".
+// Chỉ chạy khi người dùng bấm nút (tránh lỗi GitHub "too many requests"); sửa trên máy chỉ đánh dấu "chưa đồng bộ".
+// Pull: kéo gist về → gộp vào máy (store.mergeRemote), không ghi lên gist.
+// Push: kéo gist về → gộp → ghi bản đã gộp lên gist (gộp trước để không đè mất thay đổi từ máy khác).
 import * as store from './store.js';
 import { h, icon, snackbar, openSheet, closeSheet, confirmDialog, addMenuItems } from './ui-list.js';
 
@@ -12,6 +13,7 @@ const $ = (sel) => document.querySelector(sel);
 
 let status = 'idle'; // idle | syncing | ok | offline | error
 let running = null;
+let runningMode = null; // 'pull' | 'push'
 let changedDuringSync = false;
 
 const cfg = {
@@ -73,27 +75,32 @@ async function findGist(token) {
   return null;
 }
 
-// ---------- Trạng thái (nút đám mây trên thanh trên cùng) ----------
-function setStatus(s) {
-  status = s;
-  const btn = $('#btn-sync');
-  if (!btn) return;
+// ---------- Trạng thái (2 nút Pull / Push trên thanh trên cùng) ----------
+function renderButton(btn, mode, s) {
   btn.hidden = !isConnected();
-  const pending = cfg.dirty && (s === 'idle' || s === 'ok');
-  const map = {
-    idle: ['cloud', 'Đồng bộ'],
-    syncing: ['refresh', 'Đang đồng bộ…'],
-    ok: ['cloudDone', 'Đã đồng bộ'],
-    offline: ['cloudOff', 'Đang offline — sẽ đồng bộ khi có mạng'],
-    error: ['cloudOff', 'Lỗi đồng bộ — bấm để thử lại'],
-  };
-  const [ic, label] = pending ? ['cloudUpload', 'Có thay đổi chưa đồng bộ — bấm để đồng bộ'] : map[s];
-  btn.innerHTML = icon(ic);
+  const busy = s === 'syncing' && runningMode === mode;
+  const pending = mode === 'push' && cfg.dirty && s !== 'syncing';
+  const base = mode === 'pull' ? 'Pull — tải dữ liệu từ Gist về máy' : 'Push — đẩy dữ liệu trên máy lên Gist';
+  const label = busy ? (mode === 'pull' ? 'Đang tải về…' : 'Đang đẩy lên…')
+    : s === 'offline' ? 'Đang offline'
+    : s === 'error' ? 'Lỗi đồng bộ — bấm để thử lại'
+    : pending ? 'Có thay đổi chưa đẩy lên — bấm để Push'
+    : base;
+  btn.innerHTML = icon(busy ? 'refresh' : mode === 'pull' ? 'cloudDownload' : 'cloudUpload');
   btn.setAttribute('aria-label', label);
   btn.title = label;
-  btn.classList.toggle('syncing', s === 'syncing');
+  btn.disabled = s === 'syncing';
+  btn.classList.toggle('syncing', busy);
   btn.classList.toggle('sync-error', s === 'error');
   btn.classList.toggle('sync-pending', pending);
+}
+
+function setStatus(s) {
+  status = s;
+  const pull = $('#btn-pull');
+  const push = $('#btn-push');
+  if (pull) renderButton(pull, 'pull', s);
+  if (push) renderButton(push, 'push', s);
 }
 
 function timeLabel(t) {
@@ -105,7 +112,7 @@ function timeLabel(t) {
 }
 
 // ---------- Đồng bộ ----------
-export function syncNow({ manual = false } = {}) {
+export function syncNow({ manual = false, mode = 'push' } = {}) {
   if (!isConnected()) return Promise.resolve();
   if (!navigator.onLine) {
     setStatus('offline');
@@ -114,6 +121,7 @@ export function syncNow({ manual = false } = {}) {
   }
   if (running) return running;
   changedDuringSync = false;
+  runningMode = mode;
   setStatus('syncing');
   running = (async () => {
     try {
@@ -126,15 +134,17 @@ export function syncNow({ manual = false } = {}) {
       const dropLocal = store.isPristine() && Array.isArray(remote?.decks);
       if (remote) store.mergeRemote(remote, { dropLocal });
       const next = serialize();
-      if (next !== content) await writeGist(next);
+      if (mode === 'push' && next !== content) await writeGist(next);
       store.prefs.set('gistLastSync', Date.now());
-      if (!changedDuringSync) store.prefs.remove('gistDirty');
+      // Sau Pull, máy vẫn còn thay đổi chưa có trên gist thì giữ dấu "chưa đẩy lên"
+      if (!changedDuringSync && (mode === 'push' || next === content)) store.prefs.remove('gistDirty');
       setStatus('ok');
-      if (manual) snackbar('Đã đồng bộ');
+      if (manual) snackbar(mode === 'pull' ? 'Đã tải dữ liệu từ Gist về' : 'Đã đẩy lên Gist');
     } catch (e) {
       handleError(e, manual);
     } finally {
       running = null;
+      runningMode = null;
     }
   })();
   return running;
@@ -207,7 +217,7 @@ export function openConnectSheet() {
       try {
         const user = await connect(input.value.trim());
         closeSheet();
-        snackbar(`Đã kết nối GitHub @${user} — bấm nút đám mây để đồng bộ`);
+        snackbar(`Đã kết nối GitHub @${user} — dùng nút Pull / Push để đồng bộ`);
       } catch (e2) {
         disconnect();
         err.textContent = e2 instanceof HttpError && e2.status === 401
@@ -243,7 +253,8 @@ function menuItems() {
   return [
     '-',
     { label: `Gist @${cfg.user || '?'} · ${timeLabel(cfg.lastSync)}${cfg.dirty ? ' · có thay đổi chưa đồng bộ' : ''}` },
-    { icon: 'refresh', text: 'Đồng bộ ngay', onClick: () => syncNow({ manual: true }) },
+    { icon: 'cloudDownload', text: 'Pull — tải từ Gist về', onClick: () => syncNow({ manual: true, mode: 'pull' }) },
+    { icon: 'cloudUpload', text: 'Push — đẩy lên Gist', onClick: () => syncNow({ manual: true, mode: 'push' }) },
     { icon: 'open', text: 'Mở Gist trên GitHub', onClick: () => window.open(`https://gist.github.com/${cfg.gistId}`, '_blank', 'noopener') },
     { icon: 'cloudOff', text: 'Ngắt đồng bộ', onClick: async () => {
       const ok = await confirmDialog('Ngắt đồng bộ?', 'Máy này sẽ quên token. Dữ liệu trên máy và trên Gist vẫn giữ nguyên.', 'Ngắt', false);
@@ -254,7 +265,8 @@ function menuItems() {
 
 export function initSync() {
   addMenuItems(menuItems);
-  $('#btn-sync').addEventListener('click', () => syncNow({ manual: true }));
+  $('#btn-pull').addEventListener('click', () => syncNow({ manual: true, mode: 'pull' }));
+  $('#btn-push').addEventListener('click', () => syncNow({ manual: true, mode: 'push' }));
   // Sửa trên máy → chỉ đánh dấu "chưa đồng bộ", không tự gọi GitHub
   store.subscribe((source) => {
     if (source !== 'local' || !isConnected()) return;

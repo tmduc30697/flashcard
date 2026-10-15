@@ -97,9 +97,12 @@ Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`
 **Trên máy khác:** cài app, menu ⋮ → Đồng bộ GitHub Gist → dán cùng token. App tự tìm gist cũ và tải dữ liệu về (bộ mẫu trên máy mới sẽ được bỏ đi).
 
 **Cách hoạt động:**
-- Chỉ đồng bộ khi bấm nút đám mây trên thanh trên cùng (hoặc menu ⋮ → Đồng bộ ngay): tải dữ liệu mới nhất từ gist, gộp với máy này rồi đẩy lên. Không tự đồng bộ liên tục để tránh lỗi GitHub "too many requests".
-- Sửa thẻ, Đã thuộc / Chưa thuộc… → nút đổi thành đám mây có mũi tên (có thay đổi chưa đồng bộ).
-- Offline vẫn dùng bình thường; có mạng thì bấm đồng bộ.
+- Chỉ đồng bộ khi bấm nút (không tự đồng bộ liên tục để tránh lỗi GitHub "too many requests"). Trên thanh trên cùng có 2 nút đám mây (cũng có trong menu ⋮):
+  - **Pull** (mũi tên xuống): tải dữ liệu từ gist, gộp vào máy này. Không ghi gì lên gist.
+  - **Push** (mũi tên lên): tải gist về gộp trước, rồi đẩy bản đã gộp lên — nên không đè mất thay đổi từ máy khác.
+- Sửa thẻ, Đã thuộc / Chưa thuộc… → nút Push đổi màu (có thay đổi chưa đẩy lên).
+- Nên Pull khi bắt đầu học trên một máy và Push khi học xong.
+- Offline vẫn dùng bình thường; có mạng thì bấm Pull / Push.
 - Gộp theo **từng thẻ**: sửa trên 2 máy khác nhau thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
 - Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi (thường do token hết hạn → kết nối lại).
 - Xem/sửa dữ liệu và lịch sử các phiên bản: menu ⋮ → **Mở Gist trên GitHub**.
