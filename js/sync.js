@@ -253,8 +253,6 @@ function menuItems() {
   return [
     '-',
     { label: `Gist @${cfg.user || '?'} · ${timeLabel(cfg.lastSync)}${cfg.dirty ? ' · có thay đổi chưa đồng bộ' : ''}` },
-    { icon: 'cloudDownload', text: 'Pull — tải từ Gist về', onClick: () => syncNow({ manual: true, mode: 'pull' }) },
-    { icon: 'cloudUpload', text: 'Push — đẩy lên Gist', onClick: () => syncNow({ manual: true, mode: 'push' }) },
     { icon: 'open', text: 'Mở Gist trên GitHub', onClick: () => window.open(`https://gist.github.com/${cfg.gistId}`, '_blank', 'noopener') },
     { icon: 'cloudOff', text: 'Ngắt đồng bộ', onClick: async () => {
       const ok = await confirmDialog('Ngắt đồng bộ?', 'Máy này sẽ quên token. Dữ liệu trên máy và trên Gist vẫn giữ nguyên.', 'Ngắt', false);

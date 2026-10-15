@@ -153,19 +153,6 @@ export function setCurrentDeck(id) {
   if (getDeck(id)) { state.currentDeckId = id; save('view'); }
 }
 
-export function addDeck(name) {
-  const deck = newDeck(name.trim() || 'Bộ mới');
-  state.decks.push(deck);
-  state.currentDeckId = deck.id;
-  save();
-  return deck;
-}
-
-export function renameDeck(id, name) {
-  const d = getDeck(id);
-  if (d && name.trim()) { d.name = name.trim(); d.updatedAt = Date.now(); save(); }
-}
-
 export function deleteDeck(id) {
   const i = state.decks.findIndex((d) => d.id === id);
   if (i < 0) return;
@@ -199,18 +186,6 @@ export function restoreDecks(decks) {
 }
 
 // ---- Thẻ ----
-export function addCards(deckId, items) {
-  const d = getDeck(deckId);
-  if (!d) return [];
-  const now = Date.now();
-  const added = items
-    .map((it, i) => normCard({ ...it, id: uid() + i, queued: false, createdAt: now + i, updatedAt: now + i }))
-    .filter(Boolean);
-  d.cards.push(...added);
-  save();
-  return added;
-}
-
 export function updateCard(deckId, cardId, patch) {
   const c = getDeck(deckId)?.cards.find((x) => x.id === cardId);
   if (!c) return;
@@ -274,26 +249,6 @@ export function restoreCard(deckId, card, index) {
   card.updatedAt = Date.now();
   d.cards.splice(Math.min(index, d.cards.length), 0, card);
   save();
-}
-
-// ---- "Thêm nhiều": mỗi dòng `mặt trước - mặt sau`, hoặc tab, hoặc " : " ----
-export function parseBulk(text) {
-  const out = [];
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    let parts = null;
-    if (line.includes('\t')) {
-      parts = line.split('\t'); // dán từ bảng tính: Việt ⇥ Anh ⇥ IPA ⇥ ghi chú
-    } else {
-      const m = line.match(/^(.*?)\s+[-–—:]\s+(.*)$/) || line.match(/^(.*?)\s*[–—]\s*(.*)$/) || line.match(/^([^-]*?)\s*-\s*(.*)$/);
-      if (m) parts = [m[1], m[2]];
-    }
-    if (!parts) continue;
-    const [front, back, ipa = '', note = ''] = parts.map((x) => x.trim());
-    if (front && back) out.push({ front, back, ipa, note });
-  }
-  return out;
 }
 
 // ---- Nhập JSON ----

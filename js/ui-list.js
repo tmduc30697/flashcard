@@ -6,11 +6,9 @@ const $ = (sel) => document.querySelector(sel);
 // ---------- Icon SVG inline ----------
 const P = {
   expand: 'M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z',
-  plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z',
   edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
   delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
   upload: 'M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z',
-  install: 'M17 1.01 7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-1-6h-3V8h-2v5H8l4 4 4-4z',
   note: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
   close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
   share: 'M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6a2 2 0 0 1-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3a2 2 0 0 1 2 2z',
@@ -162,20 +160,6 @@ export function confirmDialog(title, message, okText = 'Xóa', danger = true) {
     ),
   ));
 }
-export function promptDialog(title, value = '', okText = 'Lưu') {
-  return dialog((done) => {
-    const input = h('input', { type: 'text', value, maxlength: '80', placeholder: 'Tên bộ thẻ', enterkeyhint: 'done' });
-    const submit = (e) => { e.preventDefault(); const v = input.value.trim(); if (v) done(v); };
-    return h('form', { class: 'dialog', onsubmit: submit },
-      h('h2', {}, title),
-      h('label', { class: 'field' }, input),
-      h('div', { class: 'actions' },
-        h('button', { type: 'button', class: 'btn btn-text ripple', onclick: () => done(null) }, 'Hủy'),
-        h('button', { type: 'submit', class: 'btn btn-text ripple' }, okText),
-      ),
-    );
-  });
-}
 
 // ---------- Nhập file ----------
 export function importFile() {
@@ -207,20 +191,12 @@ function renderTabs() {
     'aria-selected': String(d.id === cur?.id),
     onclick: () => store.setCurrentDeck(d.id),
   }, d.name, h('span', { class: 'tab-count' }, remaining(d))));
-  tabs.push(h('button', {
-    type: 'button', class: 'tab ripple', html: icon('plus'), onclick: newDeck,
-  }, 'Bộ mới'));
   nav.replaceChildren(...tabs);
   const active = nav.querySelector('[aria-selected="true"]');
   if (active) {
     const left = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
     nav.scrollTo({ left, behavior: 'auto' });
   }
-}
-
-export async function newDeck() {
-  const name = await promptDialog('Bộ thẻ mới', '', 'Tạo');
-  if (name) store.addDeck(name);
 }
 
 // ---------- Danh sách thẻ ----------
@@ -243,7 +219,6 @@ function renderList() {
   const main = $('#list');
   $('#deck-title').replaceChildren(deck?.name || 'Flashcard', deck ? h('span', { class: 'title-count' }, remaining(deck)) : '');
   document.title = deck ? `${deck.name} · Flashcard` : 'Flashcard';
-  $('#fab').hidden = !deck;
   if (!deck) {
     $('#btn-shuffle').hidden = true;
     main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG },
@@ -258,7 +233,7 @@ function renderList() {
   $('#btn-shuffle').hidden = visible.length < 2;
 
   if (!deck.cards.length) {
-    main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG }, h('p', {}, 'Chưa có thẻ nào — bấm + để thêm')));
+    main.replaceChildren(h('div', { class: 'empty', html: EMPTY_SVG }, h('p', {}, 'Bộ thẻ này trống')));
     return;
   }
 
@@ -444,102 +419,9 @@ function attachDeckSwipe(el) {
   el.addEventListener('click', (e) => { if (swallowClick) { e.stopPropagation(); e.preventDefault(); } }, true);
 }
 
-// ---------- Sheet thêm / sửa thẻ ----------
+// ---------- Sheet sửa thẻ ----------
 function field(label, el) {
   return h('label', { class: 'field' }, h('span', {}, label), el);
-}
-
-export function openAddSheet(startMode = 'single') {
-  const deck = store.currentDeck();
-  if (!deck) return;
-  let mode = startMode;
-
-  const front = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', enterkeyhint: 'next' });
-  const back = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', enterkeyhint: 'next' });
-  const ipa = h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'next', placeholder: 'tuỳ chọn' });
-  const note = h('textarea', { rows: '2', placeholder: 'tuỳ chọn' });
-  const save = h('button', { type: 'submit', class: 'btn btn-filled ripple', disabled: true }, 'Lưu');
-  const updateSave = () => { save.disabled = !(front.value.trim() && back.value.trim()); };
-  front.addEventListener('input', updateSave);
-  back.addEventListener('input', updateSave);
-  front.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); back.focus(); } });
-  back.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); ipa.focus(); } });
-  ipa.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !save.disabled) { e.preventDefault(); single.requestSubmit(); } });
-
-  const single = h('form', {
-    onsubmit: (e) => {
-      e.preventDefault();
-      if (save.disabled) return;
-      store.addCards(deck.id, [{ front: front.value, back: back.value, ipa: ipa.value, note: note.value }]);
-      front.value = back.value = ipa.value = note.value = '';
-      updateSave();
-      front.focus();
-      snackbar(`Đã thêm vào “${deck.name}”`, { duration: 1800 });
-    },
-  },
-  field('Câu tiếng Việt', front),
-  field('Câu tiếng Anh', back),
-  field('IPA', ipa),
-  field('Ghi chú', note),
-  h('div', { class: 'actions' },
-    h('button', { type: 'button', class: 'btn btn-text ripple', onclick: closeSheet }, 'Xong'),
-    h('span', { class: 'spacer' }), save),
-  );
-
-  const bulkText = h('textarea', {
-    class: 'bulk', autocapitalize: 'off', spellcheck: 'false',
-    placeholder: 'Đi thôi. - Let\'s go.\nThật à? : Really?',
-  });
-  const preview = h('div', { class: 'preview' });
-  const addBulk = h('button', { type: 'submit', class: 'btn btn-filled ripple', disabled: true }, 'Thêm');
-  let parsed = [];
-  const updatePreview = () => {
-    parsed = store.parseBulk(bulkText.value);
-    const lines = bulkText.value.split(/\r?\n/).filter((l) => l.trim()).length;
-    const bad = lines - parsed.length;
-    preview.replaceChildren(
-      h('div', {}, h('b', {}, `${parsed.length} thẻ hợp lệ`), bad > 0 ? ` · ${bad} dòng bị bỏ qua` : ''),
-      parsed.length ? h('ol', {}, parsed.slice(0, 5).map((c) => h('li', {}, `${c.front} → ${c.back}`)), parsed.length > 5 ? h('li', { style: 'list-style:none' }, '…') : null) : null,
-    );
-    addBulk.disabled = !parsed.length;
-    addBulk.textContent = parsed.length ? `Thêm ${parsed.length} thẻ` : 'Thêm';
-  };
-  bulkText.addEventListener('input', updatePreview);
-  const bulk = h('form', {
-    onsubmit: (e) => {
-      e.preventDefault();
-      if (!parsed.length) return;
-      const added = store.addCards(deck.id, parsed);
-      closeSheet();
-      snackbar(`Đã thêm ${added.length} thẻ`);
-    },
-  },
-  field('Mỗi dòng một thẻ', bulkText),
-  h('p', { class: 'hint' }, 'Mỗi dòng: câu tiếng Việt - câu tiếng Anh (ngăn cách bằng “ - ” hoặc “ : ”). Dán từ bảng tính: Việt ⇥ Anh ⇥ IPA ⇥ ghi chú.'),
-  preview,
-  h('div', { class: 'actions' },
-    h('button', { type: 'button', class: 'btn btn-text ripple', onclick: closeSheet }, 'Hủy'),
-    h('span', { class: 'spacer' }), addBulk),
-  );
-
-  const segSingle = h('button', { type: 'button', onclick: () => setMode('single') }, 'Một thẻ');
-  const segBulk = h('button', { type: 'button', onclick: () => setMode('bulk') }, 'Thêm nhiều');
-  const body = h('div');
-  function setMode(m) {
-    mode = m;
-    segSingle.setAttribute('aria-pressed', String(m === 'single'));
-    segBulk.setAttribute('aria-pressed', String(m === 'bulk'));
-    body.replaceChildren(m === 'single' ? single : bulk);
-    if (m === 'bulk') updatePreview();
-    setTimeout(() => (m === 'single' ? front : bulkText).focus(), 50);
-  }
-
-  openSheet(h('div', {},
-    h('div', { class: 'sheet-head' }, h('h2', {}, 'Thêm thẻ')),
-    h('div', { class: 'seg', role: 'group' }, segSingle, segBulk),
-    body,
-  ));
-  setMode(mode);
 }
 
 function openEditSheet(deck, card) {
@@ -578,7 +460,7 @@ function openEditSheet(deck, card) {
 }
 
 // ---------- Menu ⋮ ----------
-// Các module khác (cài app, đồng bộ) góp thêm mục vào menu ⋮
+// Module khác (đồng bộ) góp thêm mục vào menu ⋮
 const menuProviders = [];
 export function addMenuItems(fn) { menuProviders.push(fn); }
 
@@ -586,21 +468,14 @@ function openDeckMenu(anchor) {
   const deck = store.currentDeck();
   const decks = store.getDecks();
   openMenu(anchor, [
-    ...(deck ? [{ icon: 'edit', text: 'Đổi tên bộ thẻ', onClick: async () => {
-      const name = await promptDialog('Đổi tên bộ thẻ', deck.name);
-      if (name) store.renameDeck(deck.id, name);
-    } },
-    { icon: 'delete', text: 'Xóa bộ thẻ', danger: true, onClick: async () => {
+    ...(deck ? [{ icon: 'delete', text: 'Xóa bộ thẻ', danger: true, onClick: async () => {
       const ok = await confirmDialog('Xóa bộ thẻ?', `Bộ “${deck.name}” và ${deck.cards.length} thẻ bên trong sẽ bị xóa.`);
       if (!ok) return;
       store.deleteDeck(deck.id);
       snackbar('Đã xóa bộ thẻ', { action: 'Hoàn tác', onAction: () => store.restoreDecks([deck]), duration: 8000 });
-    } },
-    '-'] : []),
+    } }] : []),
+    ...(decks.length ? [{ icon: 'delete', text: 'Xóa tất cả bộ thẻ', danger: true, onClick: deleteAll }] : []),
     { icon: 'upload', text: 'Nhập từ file JSON', onClick: importFile },
-    ...(decks.length ? [
-      { icon: 'delete', text: 'Xóa tất cả bộ thẻ', danger: true, onClick: deleteAll },
-    ] : []),
     ...menuProviders.flatMap((fn) => fn()),
   ]);
 }
@@ -617,7 +492,6 @@ async function deleteAll() {
 }
 
 export function initList() {
-  $('#fab').addEventListener('click', () => openAddSheet());
   $('#btn-menu').addEventListener('click', (e) => openDeckMenu(e.currentTarget));
   $('#btn-shuffle').addEventListener('click', shuffle);
   attachDeckSwipe($('#list'));

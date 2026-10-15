@@ -67,14 +67,14 @@ python3 scripts/gen-icons.py
 
 **Android (Chrome):**
 1. Mở link app bằng **Chrome**.
-2. Bấm menu ⋮ trong app → **Cài app**, hoặc menu ⋮ của Chrome → **Cài đặt ứng dụng / Thêm vào màn hình chính**.
+2. Menu ⋮ của Chrome → **Cài đặt ứng dụng / Thêm vào màn hình chính** (hoặc bấm biểu tượng cài đặt trên thanh địa chỉ).
 
 Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng.
 
 ## Sử dụng nhanh
 
-- **Tab trên cùng**: mỗi tab là một bộ thẻ; tab cuối "+ Bộ mới" để tạo bộ.
-- **Menu ⋮**: đổi tên / xóa bộ hiện tại, nhập file JSON, xóa tất cả bộ, đồng bộ Gist, cài app.
+- **Tab trên cùng**: mỗi tab là một bộ thẻ. Bộ thẻ chỉ được tạo bằng cách nhập file JSON.
+- **Menu ⋮**: xóa bộ hiện tại, xóa tất cả bộ, nhập file JSON, đồng bộ Gist.
 - **Danh sách** chỉ hiện mặt trước. **Bấm vào một dòng** để mở rộng: hiện mặt sau (câu tiếng Anh, IPA thẳng hàng ngay dưới), ghi chú và 2 nút:
   - **Thuộc** → xóa thẻ (có Hoàn tác).
   - **Chưa thuộc** → thẻ vào **hàng chờ** (ẩn khỏi danh sách).
@@ -84,7 +84,6 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 - **Nút loa** trong dòng mở rộng: đọc câu tiếng Anh bằng giọng có sẵn của máy (chạy offline).
 - **Nút copy** trong dòng mở rộng: copy câu tiếng Anh (ví dụ để dán sang ChatGPT hỏi nghĩa).
 - **Vuốt ngang trên danh sách**: chuyển bộ thẻ (sang phải → bộ trước, sang trái → bộ sau).
-- **Nút +**: thêm thẻ, hoặc chuyển sang **Thêm nhiều** để dán cả danh sách.
 
 ## Đồng bộ giữa các máy (GitHub Gist)
 
@@ -99,7 +98,7 @@ Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`
 **Trên máy khác:** cài app, menu ⋮ → Đồng bộ GitHub Gist → dán cùng token. App tự tìm gist cũ và tải dữ liệu về (bộ mẫu trên máy mới sẽ được bỏ đi).
 
 **Cách hoạt động:**
-- Chỉ đồng bộ khi bấm nút (không tự đồng bộ liên tục để tránh lỗi GitHub "too many requests"). Trên thanh trên cùng có 2 nút đám mây (cũng có trong menu ⋮):
+- Chỉ đồng bộ khi bấm nút (không tự đồng bộ liên tục để tránh lỗi GitHub "too many requests"). Trên thanh trên cùng có 2 nút đám mây:
   - **Pull** (mũi tên xuống): tải dữ liệu từ gist, gộp vào máy này. Không ghi gì lên gist.
   - **Push** (mũi tên lên): tải gist về gộp trước, rồi đẩy bản đã gộp lên — nên không đè mất thay đổi từ máy khác.
 - Sửa thẻ, Đã thuộc / Chưa thuộc… → nút Push đổi màu (có thay đổi chưa đẩy lên).
@@ -110,18 +109,6 @@ Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`
 - Xem/sửa dữ liệu và lịch sử các phiên bản: menu ⋮ → **Mở Gist trên GitHub**.
 
 > Token chỉ có quyền gist và được lưu trong trình duyệt của máy đó. Không dán token trên máy của người khác. Nếu lộ token: xóa nó tại https://github.com/settings/tokens rồi tạo token mới.
-
-## Định dạng "Thêm nhiều"
-
-Mỗi dòng một thẻ: câu tiếng Việt và câu tiếng Anh ngăn cách bằng ` - ` hoặc ` : `. Dán thẳng từ Excel/Google Sheets được, các cột theo thứ tự **Việt ⇥ Anh ⇥ IPA ⇥ ghi chú** (IPA, ghi chú tuỳ chọn):
-
-```
-Đi thôi. - Let's go.
-Thật à? : Really?
-Để tôi xem nào.	Let me see.	lɛt mi si	ghi chú
-```
-
-Dòng trống hoặc không có dấu ngăn cách sẽ bị bỏ qua; app hiển thị số thẻ hợp lệ trước khi thêm.
 
 ## Định dạng file JSON để nhập
 

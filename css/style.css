@@ -166,19 +166,6 @@ body { overflow-x: hidden; }
 .empty p { margin: 0; font-size: 15px; }
 
 
-/* ---------- FAB ---------- */
-.fab {
-  position: fixed; z-index: 20;
-  right: calc(16px + var(--sar)); bottom: calc(16px + var(--sab));
-  width: 56px; height: 56px; border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--primary-container); color: var(--on-primary-container);
-  box-shadow: var(--shadow-3);
-  transition: transform 0.2s, bottom 0.2s;
-}
-.fab:active { transform: scale(0.95); }
-body.has-snack .fab { bottom: calc(88px + var(--sab)); }
-
 /* ---------- Scrim / sheet ---------- */
 .scrim {
   position: fixed; inset: 0; z-index: 40; background: var(--scrim);
@@ -198,10 +185,6 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
 .sheet-handle { width: 32px; height: 4px; border-radius: 2px; background: var(--outline); margin: 8px auto 12px; }
 .sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .sheet-head h2 { flex: 1; margin: 0; font-size: 20px; font-weight: 400; }
-.seg { display: flex; border: 1px solid var(--outline); border-radius: 20px; overflow: hidden; margin-bottom: 16px; }
-.seg button { flex: 1; height: 40px; font-size: 14px; font-weight: 500; color: var(--text); }
-.seg button + button { border-left: 1px solid var(--outline); }
-.seg button[aria-pressed="true"] { background: var(--primary-container); color: var(--on-primary-container); }
 
 .field { display: block; margin-bottom: 12px; }
 .field span { display: block; font-size: 12px; color: var(--text-2); margin: 0 0 4px 4px; }
@@ -211,15 +194,8 @@ body.has-snack .fab { bottom: calc(88px + var(--sab)); }
   font-size: 16px; outline: none; resize: vertical;
 }
 .field textarea { min-height: 80px; }
-.field textarea.bulk { min-height: 180px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
 .field input:focus, .field textarea:focus { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
 .hint { font-size: 13px; color: var(--text-2); margin: -4px 4px 12px; }
-.preview {
-  font-size: 13px; color: var(--text-2); margin: 0 0 12px; max-height: 120px; overflow-y: auto;
-  background: var(--surface); border-radius: 12px; padding: 8px 12px;
-}
-.preview b { color: var(--text); }
-.preview ol { margin: 4px 0 0; padding-left: 20px; }
 
 .actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .actions .spacer { flex: 1; }

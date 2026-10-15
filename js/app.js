@@ -1,6 +1,6 @@
 // Khởi động app: service worker, banner cài đặt / cập nhật.
 import * as store from './store.js';
-import { initList, initRipple, addMenuItems, snackbar, h, icon } from './ui-list.js';
+import { initList, initRipple, snackbar, h, icon } from './ui-list.js';
 import { initSync } from './sync.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -47,27 +47,8 @@ function initServiceWorker() {
 const isStandalone = () =>
   matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
-let installPrompt = null;
+// Android / Chrome tự hiện gợi ý cài app của trình duyệt; chỉ iOS cần hướng dẫn
 function initInstall() {
-  // Android / Chrome: giữ sự kiện để hiện mục "Cài app" trong menu ⋮
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    installPrompt = e;
-  });
-  window.addEventListener('appinstalled', () => {
-    installPrompt = null;
-    snackbar('Đã cài app');
-  });
-  addMenuItems(() => installPrompt ? ['-', {
-    icon: 'install', text: 'Cài app',
-    onClick: async () => {
-      const p = installPrompt;
-      installPrompt = null;
-      p.prompt();
-      await p.userChoice.catch(() => null);
-    },
-  }] : []);
-
   // iOS Safari: không có sự kiện cài đặt → hiện hướng dẫn một lần
   const ua = navigator.userAgent;
   const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
