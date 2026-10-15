@@ -1,4 +1,4 @@
-// Lưu trữ dữ liệu: localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu khi đồng bộ.
+// Lưu trữ dữ liệu: localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu khi đồng bộ (Firebase).
 
 import { splitIPA } from './ipa.js';
 
@@ -6,7 +6,7 @@ const KEY = 'flashcard:data';
 const FORMAT = 'flashcard-pwa';
 const TOMBSTONE_TTL = 90 * 24 * 3600 * 1000; // nhớ thẻ/bộ đã xóa 90 ngày để máy khác cũng xóa theo
 
-// deleted: { [id]: thời điểm xóa } — dùng khi gộp với dữ liệu trên Gist
+// deleted: { [id]: thời điểm xóa } — dùng khi gộp với dữ liệu trên server
 // pristine: dữ liệu vẫn chỉ là bộ mẫu chưa đụng tới (bỏ đi khi đồng bộ lần đầu)
 let state = { decks: [], deleted: {}, currentDeckId: null, pristine: false };
 const listeners = new Set();
@@ -132,7 +132,7 @@ function persist() {
   }));
 }
 
-// source: 'local' = người dùng sửa (cần đẩy lên Gist), 'sync' = vừa nhận từ Gist, 'view' = chỉ đổi bộ đang xem
+// source: 'local' = người dùng sửa (cần đẩy lên server), 'sync' = vừa nhận từ server, 'view' = chỉ đổi bộ đang xem
 export function save(source = 'local') {
   if (source === 'local') state.pristine = false;
   persist();
@@ -279,14 +279,20 @@ export function importData(json) {
 }
 
 // ---- Đồng bộ ----
-// Dữ liệu ghi lên Gist (không gồm bộ đang xem — cái đó riêng từng máy)
+// Dữ liệu đồng bộ lên server (không gồm bộ đang xem — cái đó riêng từng máy)
 export function syncSnapshot() {
   return { format: FORMAT, version: 1, decks: state.decks, deleted: state.deleted };
 }
 
 export const isPristine = () => state.pristine;
 
-// Gộp dữ liệu từ Gist vào máy: theo từng bộ/thẻ, bản nào sửa sau thì thắng;
+// Xóa sạch dữ liệu trên máy (khi đăng xuất / đổi tài khoản); không coi là thay đổi cần đẩy lên
+export function resetLocal() {
+  state = { decks: [], deleted: {}, currentDeckId: null, pristine: true };
+  save('sync');
+}
+
+// Gộp dữ liệu từ server vào máy: theo từng bộ/thẻ, bản nào sửa sau thì thắng;
 // thẻ/bộ đã xóa (tombstone) thắng nếu bị xóa sau lần sửa cuối.
 export function mergeRemote(remote, { dropLocal = false } = {}) {
   const local = dropLocal ? { decks: [], deleted: {} } : { decks: state.decks, deleted: state.deleted };

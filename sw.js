@@ -1,5 +1,6 @@
-const CACHE_VERSION = 'v23';
+const CACHE_VERSION = 'v24';
 const CACHE_NAME = 'flashcard-' + CACHE_VERSION;
+const LIB_CACHE = 'fclib'; // không bắt đầu bằng 'flashcard-' → không bị xóa khi lên phiên bản
 
 // Mọi file tĩnh của app (đường dẫn tương đối so với sw.js)
 const PRECACHE = [
@@ -10,7 +11,8 @@ const PRECACHE = [
   './js/app.js',
   './js/store.js',
   './js/ui-list.js',
-  './js/sync.js',
+  './js/cloud.js',
+  './js/firebase-config.js',
   './js/ipa.js',
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -42,12 +44,26 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // Firebase SDK (đường dẫn có số phiên bản, không bao giờ đổi) → cache riêng để mở app offline vẫn có
+  if (url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) {
+    event.respondWith(libCache(req));
+    return;
+  }
   if (url.origin !== self.location.origin) return;
 
   // Mọi file (kể cả HTML) lấy từ cache của đúng phiên bản này để HTML/CSS/JS luôn khớp nhau.
   // Bản mới chỉ đến khi CACHE_VERSION đổi → SW mới cài đặt → người dùng bấm "Cập nhật".
   event.respondWith(cacheFirst(req));
 });
+
+async function libCache(req) {
+  const cache = await caches.open(LIB_CACHE);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  const res = await fetch(req);
+  if (res.ok) cache.put(req, res.clone());
+  return res;
+}
 
 async function cacheFirst(req) {
   const cache = await caches.open(CACHE_NAME);

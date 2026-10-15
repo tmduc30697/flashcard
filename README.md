@@ -5,7 +5,7 @@ App học flashcard dạng PWA, giao diện kiểu danh sách việc cần làm 
 **Link app:** https://tmduc30697.github.io/flashcard/
 
 - Vanilla HTML/CSS/JS, không framework, không bước build.
-- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy; có thể bật **đồng bộ qua GitHub Gist** để điện thoại và máy tính dùng chung.
+- Dữ liệu lưu trong `localStorage` của trình duyệt trên từng máy; **đăng nhập** (Google hoặc email, qua Firebase) để dữ liệu tự đồng bộ giữa điện thoại và máy tính.
 
 ## Chạy thử trên máy
 
@@ -74,7 +74,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 ## Sử dụng nhanh
 
 - **Tab trên cùng**: mỗi tab là một bộ thẻ. Bộ thẻ chỉ được tạo bằng cách nhập file JSON.
-- **Menu ⋮**: xóa bộ hiện tại, xóa tất cả bộ, nhập file JSON, đồng bộ Gist.
+- **Menu ⋮**: xóa bộ hiện tại, xóa tất cả bộ, nhập file JSON, đăng nhập / đăng xuất.
 - **Danh sách** chỉ hiện mặt trước. **Bấm vào một dòng** để mở rộng: hiện mặt sau (câu tiếng Anh, IPA thẳng hàng ngay dưới), ghi chú và 2 nút:
   - **Thuộc** → xóa thẻ (có Hoàn tác).
   - **Chưa thuộc** → thẻ vào **hàng chờ** (ẩn khỏi danh sách).
@@ -85,30 +85,39 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 - **Nút copy** trong dòng mở rộng: copy câu tiếng Anh (ví dụ để dán sang ChatGPT hỏi nghĩa).
 - **Vuốt ngang trên danh sách**: chuyển bộ thẻ (sang phải → bộ trước, sang trái → bộ sau).
 
-## Đồng bộ giữa các máy (GitHub Gist)
+## Đăng nhập & đồng bộ (Firebase)
 
-Dữ liệu được lưu vào một **secret gist** (file `flashcard-data.json`) trong tài khoản GitHub của bạn. Không cần server hay đăng ký dịch vụ nào khác.
+Menu ⋮ → **Đăng nhập để đồng bộ** → *Tiếp tục với Google* hoặc email + mật khẩu. Mỗi tài khoản có dữ liệu riêng.
 
-**Bật lần đầu:**
-1. Trong app: menu ⋮ → **Đồng bộ GitHub Gist** → bấm *Mở trang tạo token trên GitHub*
-   (hoặc mở thẳng https://github.com/settings/tokens/new?scopes=gist&description=Flashcard%20PWA).
-2. Expiration chọn **No expiration**, chỉ tick quyền **gist** → **Generate token**.
-3. Copy token (`ghp_...`), dán vào app → **Kết nối**. Lưu token vào ghi chú để dùng cho máy khác.
+- Đồng bộ **tự động**: sửa trên máy này khoảng 1–2 giây sau đã có trên máy khác đang mở app.
+- Offline vẫn dùng bình thường; có mạng lại thì tự đẩy lên.
+- Gộp theo **từng thẻ**: sửa trên 2 máy thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
+- Lần đầu đăng nhập trên một máy: dữ liệu đang có trên máy được gộp vào tài khoản (bộ mẫu chưa đụng tới thì bị bỏ).
+- **Đăng xuất** xóa dữ liệu khỏi máy đó (vẫn còn trong tài khoản).
+- Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi, bấm để thử lại.
+- iPhone đã cài app lên màn hình chính: nếu *Tiếp tục với Google* không chạy, dùng email + mật khẩu.
 
-**Trên máy khác:** cài app, menu ⋮ → Đồng bộ GitHub Gist → dán cùng token. App tự tìm gist cũ và tải dữ liệu về (bộ mẫu trên máy mới sẽ được bỏ đi).
+### Tạo project Firebase (làm một lần, cho người deploy app)
 
-**Cách hoạt động:**
-- Chỉ đồng bộ khi bấm nút (không tự đồng bộ liên tục để tránh lỗi GitHub "too many requests"). Trên thanh trên cùng có 2 nút đám mây:
-  - **Pull** (mũi tên xuống): tải dữ liệu từ gist, gộp vào máy này. Không ghi gì lên gist.
-  - **Push** (mũi tên lên): tải gist về gộp trước, rồi đẩy bản đã gộp lên — nên không đè mất thay đổi từ máy khác.
-- Sửa thẻ, Đã thuộc / Chưa thuộc… → nút Push đổi màu (có thay đổi chưa đẩy lên).
-- Nên Pull khi bắt đầu học trên một máy và Push khi học xong.
-- Offline vẫn dùng bình thường; có mạng thì bấm Pull / Push.
-- Gộp theo **từng thẻ**: sửa trên 2 máy khác nhau thì giữ bản sửa sau cùng của mỗi thẻ; thẻ đã xóa ở máy này cũng bị xóa ở máy kia.
-- Biểu tượng đám mây trên thanh trên cùng cho biết trạng thái. Đỏ = lỗi (thường do token hết hạn → kết nối lại).
-- Xem/sửa dữ liệu và lịch sử các phiên bản: menu ⋮ → **Mở Gist trên GitHub**.
+1. https://console.firebase.google.com → **Create a project** (tắt Google Analytics cũng được).
+2. **Build → Authentication → Get started → Sign-in method**: bật **Google** và **Email/Password**.
+3. **Authentication → Settings → Authorized domains**: thêm `tmduc30697.github.io` (`localhost` có sẵn).
+4. **Build → Firestore Database → Create database**: chọn location (vd. `asia-southeast1`), **production mode**. Tab **Rules** dán vào rồi **Publish**:
 
-> Token chỉ có quyền gist và được lưu trong trình duyệt của máy đó. Không dán token trên máy của người khác. Nếu lộ token: xóa nó tại https://github.com/settings/tokens rồi tạo token mới.
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid}/{document=**} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+
+5. **Project settings → Your apps → Web (`</>`)** → đăng ký app → copy object `firebaseConfig` vào `js/firebase-config.js`.
+
+Gói miễn phí (Spark) đủ dùng cho vài trăm người: 50k lượt đọc, 20k lượt ghi mỗi ngày, 1 GB dữ liệu. Mỗi bộ thẻ là một document (giới hạn 1 MB ≈ vài nghìn thẻ/bộ).
 
 ## Định dạng file JSON để nhập
 
@@ -149,7 +158,8 @@ js/app.js           Khởi động, điều hướng, đăng ký SW, banner cài
 js/store.js         localStorage, nhập JSON, dữ liệu mẫu, gộp dữ liệu đồng bộ
 js/ui-list.js       Tab bộ thẻ, danh sách thẻ, bottom sheet, snackbar
 js/ipa.js           Tách phiên âm IPA
-js/sync.js          Đồng bộ với GitHub Gist
+js/cloud.js         Đăng nhập + đồng bộ Firebase
+js/firebase-config.js  Cấu hình project Firebase
 icons/              Icon app (SVG gốc + PNG)
 scripts/            gen-icons.py, bump-version.sh
 ```

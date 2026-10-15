@@ -1,7 +1,7 @@
 // Khởi động app: service worker, banner cài đặt / cập nhật.
 import * as store from './store.js';
 import { initList, initRipple, snackbar, h, icon } from './ui-list.js';
-import { initSync } from './sync.js';
+import { initCloud } from './cloud.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -70,5 +70,5 @@ store.load();
 initRipple();
 initList();
 initInstall();
-initSync();
+initCloud();
 initServiceWorker();
