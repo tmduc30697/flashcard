@@ -1,11 +1,11 @@
-// Đăng nhập Google và đồng bộ dữ liệu qua Firebase Firestore.
+// Bắt buộc đăng nhập Google; dữ liệu đồng bộ dữ liệu qua Firebase Firestore.
 // Dữ liệu mỗi người: users/{uid}/decks/{deckId} = { json } (mỗi bộ thẻ một document),
 // users/{uid}/meta/state = { deleted } (thẻ/bộ đã xóa, để máy khác xóa theo).
 // Tự đồng bộ: nghe thay đổi từ máy khác (onSnapshot), gộp vào máy (store.mergeRemote),
 // và đẩy những bộ thẻ khác với trên server sau khi sửa ~1.5 giây.
 import * as store from './store.js';
 import { firebaseConfig } from './firebase-config.js';
-import { icon, snackbar, confirmDialog, addMenuItems } from './ui-list.js';
+import { h, icon, snackbar, confirmDialog, addMenuItems } from './ui-list.js';
 
 // Tải SDK lúc chạy (dynamic import) để app vẫn mở được khi offline hoặc chưa cấu hình Firebase
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
@@ -179,11 +179,35 @@ function push() {
   return pushing;
 }
 
+// ---------- Màn hình đăng nhập (bắt buộc) ----------
+const GOOGLE_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.45a5.5 5.5 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.8z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3.01c-1.07.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.72-4.95H1.27v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.28 14.29A7.2 7.2 0 0 1 4.9 12c0-.8.14-1.57.38-2.29v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.39l4.01-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77z"/></svg>`;
+
+const loginBtn = h('button', { type: 'button', class: 'btn btn-google ripple', html: GOOGLE_SVG, onclick: () => login() }, 'Đăng nhập bằng Google');
+const loginMsg = h('p', { class: 'login-msg', role: 'alert' });
+
+function showLogin(show, { ready = true, msg = '' } = {}) {
+  const el = $('#login');
+  el.hidden = !show;
+  $('#screen-list').hidden = show;
+  if (!show) return;
+  if (!el.firstChild) {
+    el.append(
+      h('img', { src: './icons/icon.svg', alt: '', class: 'login-logo' }),
+      h('h1', {}, 'Flashcard'),
+      h('p', {}, 'Đăng nhập để lưu thẻ và dùng chung giữa điện thoại và máy tính.'),
+      loginBtn, loginMsg,
+    );
+  }
+  loginBtn.disabled = !ready;
+  loginMsg.textContent = msg;
+}
+
 // ---------- Tài khoản ----------
 function onUser(u) {
   stopListening();
   user = u;
-  if (!u) { setStatus('idle'); return; }
+  if (!u) { setStatus('idle'); showLogin(true); return; }
+  showLogin(false);
   const owner = store.prefs.get('cloudOwner');
   if (owner && owner !== u.uid) store.resetLocal(); // máy này từng đăng nhập tài khoản khác
   store.prefs.set('cloudOwner', u.uid);
@@ -206,7 +230,6 @@ async function logout() {
   store.prefs.remove('cloudOwner');
   store.prefs.remove('cloudLastSync');
   store.resetLocal();
-  snackbar('Đã đăng xuất');
 }
 
 const AUTH_ERRORS = {
@@ -218,20 +241,19 @@ const AUTH_ERRORS = {
 };
 
 async function login() {
+  loginMsg.textContent = '';
   try {
     // SDK đã tải sẵn thì gọi ngay trong lượt bấm, để Safari không chặn popup đăng nhập
     const { auth, A } = fb || await loadSdk();
-    const cred = await A.signInWithPopup(auth, new A.GoogleAuthProvider());
-    snackbar(`Đã đăng nhập ${cred.user.email || ''} — dữ liệu sẽ tự đồng bộ`);
+    await A.signInWithPopup(auth, new A.GoogleAuthProvider());
   } catch (e) {
     if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return;
-    snackbar(AUTH_ERRORS[e?.code] || 'Không đăng nhập được: ' + (e?.message || e), { duration: 6000 });
+    loginMsg.textContent = AUTH_ERRORS[e?.code] || 'Không đăng nhập được: ' + (e?.message || e);
   }
 }
 
 function menuItems() {
-  if (!firebaseConfig) return [];
-  if (!user) return ['-', { icon: 'account', text: 'Đăng nhập Google để đồng bộ', onClick: login }];
+  if (!user) return [];
   return [
     '-',
     { label: `${user.email || 'Tài khoản'} · ${timeLabel(Number(store.prefs.get('cloudLastSync')) || 0)}` },
@@ -259,11 +281,17 @@ export function initCloud() {
     if (document.visibilityState === 'hidden' && pushTimer) push();
   });
 
+  // Máy đã đăng nhập trước đó → vào thẳng app (kể cả offline); chưa từng đăng nhập → màn hình đăng nhập
+  const known = !!store.prefs.get('cloudOwner');
+  if (!known) showLogin(true, { ready: false });
   loadSdk()
     .then(({ auth, A }) => A.onAuthStateChanged(auth, onUser))
     .catch((e) => {
       console.warn('Không tải được Firebase', e);
-      // Offline lúc mở app: lần sau có mạng mở lại app sẽ đồng bộ
-      if (store.prefs.get('cloudOwner')) snackbar('Đang offline — chưa đồng bộ được');
+      if (known) snackbar('Đang offline — chưa đồng bộ được');
+      else {
+        showLogin(true, { ready: false, msg: 'Cần có mạng để đăng nhập. Kết nối mạng rồi mở lại app.' });
+        window.addEventListener('online', () => location.reload(), { once: true });
+      }
     });
 }

@@ -87,7 +87,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 
 ## Đăng nhập & đồng bộ (Firebase)
 
-Menu ⋮ → **Đăng nhập Google để đồng bộ**. Mỗi tài khoản có dữ liệu riêng.
+Phải **đăng nhập Google** mới dùng được app (màn hình đầu tiên). Mỗi tài khoản có dữ liệu riêng. Máy đã đăng nhập thì mở offline vẫn dùng được; lần đầu đăng nhập trên máy mới cần có mạng. Đăng xuất: menu ⋮ → **Đăng xuất**.
 
 - Đồng bộ **tự động**: sửa trên máy này khoảng 1–2 giây sau đã có trên máy khác đang mở app.
 - Offline vẫn dùng bình thường; có mạng lại thì tự đẩy lên.
