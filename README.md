@@ -82,6 +82,7 @@ Sau khi cài, app mở toàn màn hình và dùng được khi không có mạng
 - **Nút xáo trộn** (thanh trên cùng): đổi thứ tự ngẫu nhiên các thẻ (có Hoàn tác).
 - **Nút bút chì** trong dòng mở rộng: sửa / xóa thẻ.
 - **Nút loa** trong dòng mở rộng: đọc câu tiếng Anh bằng giọng có sẵn của máy (chạy offline).
+- **Nút copy** trong dòng mở rộng: copy câu tiếng Anh (ví dụ để dán sang ChatGPT hỏi nghĩa).
 - **Vuốt ngang trên danh sách**: chuyển bộ thẻ (sang phải → bộ trước, sang trái → bộ sau).
 - **Nút +**: thêm thẻ, hoặc chuyển sang **Thêm nhiều** để dán cả danh sách.
 
